@@ -1,1197 +1,1093 @@
-<!DOCTYPE html>\
-<html lang="zh-TW">\
-<head>\
-<meta charset="UTF-8">\
-<meta name="viewport" content="width=device-width, initial-scale=1.0">\
-<title>\uc0\u29702 \u36001 \u21161 \u25163 </title>\
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">\
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>\
-<!-- Supabase SDK -->\
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\
-\
-<style>\
-/* \uc0\u9552 \u9552  SUPABASE CONFIG NOTICE \u9552 \u9552  */\
-/* \uc0\u35531 \u22312 \u19979 \u26041  JS \u21312 \u22495 \u22635 \u20837 \u20320 \u30340  SUPABASE_URL \u21644  SUPABASE_ANON_KEY */\
-\
-/* \uc0\u9552 \u9552 \u9552  LOGIN SCREEN \u9552 \u9552 \u9552  */\
-#login-screen \{\
-  position:fixed;inset:0;z-index:2000;\
-  background:#0e1117;\
-  display:flex;flex-direction:column;align-items:center;justify-content:center;\
-  background-image:\
-    radial-gradient(ellipse 70% 60% at 15% 85%, rgba(212,168,67,0.08) 0%, transparent 65%),\
-    radial-gradient(ellipse 60% 70% at 85% 15%, rgba(62,207,178,0.06) 0%, transparent 65%);\
-\}\
-.login-card \{\
-  width:100%;max-width:380px;\
-  background:#161c27;\
-  border:1px solid #2c3550;border-radius:20px;\
-  padding:40px 36px;\
-  display:flex;flex-direction:column;align-items:center;\
-  box-shadow:0 24px 80px rgba(0,0,0,0.5);\
-  animation:loginIn 0.5s cubic-bezier(0.34,1.2,0.64,1);\
-\}\
-@keyframes loginIn\{from\{opacity:0;transform:translateY(30px) scale(0.97)\}to\{opacity:1;transform:none\}\}\
-.login-logo \{\
-  font-family:'Playfair Display',serif;\
-  font-size:1.5rem;color:#d4a843;\
-  margin-bottom:6px;letter-spacing:0.04em;\
-  display:flex;align-items:center;gap:10px;\
-\}\
-.login-mark \{ font-size:2.2rem; line-height:1; \}\
-.login-tagline \{\
-  font-size:0.82rem;color:#7a849c;\
-  margin-bottom:32px;text-align:center;line-height:1.7;\
-\}\
-.login-divider \{\
-  width:100%;display:flex;align-items:center;gap:12px;\
-  margin:20px 0;\
-\}\
-.login-divider::before,.login-divider::after \{\
-  content:'';flex:1;height:1px;background:#2c3550;\
-\}\
-.login-divider span \{ font-size:0.72rem;color:#4a5268; \}\
-.btn-google \{\
-  width:100%;\
-  padding:13px 20px;\
-  background:#1e2535;\
-  border:1px solid #3a4568;border-radius:12px;\
-  color:#e4e8f4;\
-  font-family:'Noto Sans TC',sans-serif;\
-  font-size:0.9rem;font-weight:500;\
-  cursor:pointer;transition:all 0.2s;\
-  display:flex;align-items:center;justify-content:center;gap:10px;\
-\}\
-.btn-google:hover \{ background:#252e42;border-color:#d4a843;transform:translateY(-1px); \}\
-.btn-google svg \{ width:20px;height:20px;flex-shrink:0; \}\
-.login-email-section \{ width:100%; \}\
-.login-input \{\
-  width:100%;\
-  background:#1e2535;border:1px solid #2c3550;border-radius:10px;\
-  padding:11px 14px;color:#e4e8f4;\
-  font-family:'JetBrains Mono',monospace;font-size:0.88rem;\
-  outline:none;transition:border-color 0.2s;margin-bottom:10px;\
-\}\
-.login-input:focus \{ border-color:#5a4618; \}\
-.login-input::placeholder \{ color:#4a5268; \}\
-.btn-email-login \{\
-  width:100%;padding:12px;\
-  background:#d4a843;border:none;border-radius:10px;\
-  color:#0e1117;font-family:'Noto Sans TC',sans-serif;\
-  font-size:0.9rem;font-weight:700;cursor:pointer;\
-  transition:all 0.2s;\
-\}\
-.btn-email-login:hover \{ background:#ecc96b; \}\
-.login-toggle \{\
-  font-size:0.78rem;color:#7a849c;margin-top:10px;\
-  cursor:pointer;text-align:center;\
-\}\
-.login-toggle span \{ color:#d4a843;text-decoration:underline; \}\
-.login-msg \{\
-  font-size:0.78rem;margin-top:12px;text-align:center;min-height:18px;\
-\}\
-.login-msg.ok \{ color:#3ecfb2; \}\
-.login-msg.err \{ color:#e05b6a; \}\
-.login-privacy \{\
-  font-size:0.7rem;color:#4a5268;\
-  margin-top:24px;text-align:center;line-height:1.6;\
-  border-top:1px solid #2c3550;padding-top:16px;width:100%;\
-\}\
-\
-/* \uc0\u9552 \u9552 \u9552  LOADING \u9552 \u9552 \u9552  */\
-#loading-screen \{\
-  position:fixed;inset:0;z-index:1999;\
-  background:#0e1117;\
-  display:none;\
-  flex-direction:column;align-items:center;justify-content:center;gap:16px;\
-\}\
-.loading-logo \{\
-  font-family:'Playfair Display',serif;\
-  font-size:1.2rem;color:#d4a843;letter-spacing:0.04em;\
-  display:flex;align-items:center;gap:8px;\
-\}\
-.dots \{ display:flex;gap:6px; \}\
-.dot \{\
-  width:8px;height:8px;border-radius:50%;background:#d4a843;\
-  animation:dotPop 1.2s ease-in-out infinite;\
-\}\
-.dot:nth-child(2)\{animation-delay:0.2s\}\
-.dot:nth-child(3)\{animation-delay:0.4s\}\
-@keyframes dotPop\{0%,100%\{opacity:0.2;transform:scale(0.7)\}50%\{opacity:1;transform:scale(1.2)\}\}\
-.loading-msg \{ font-size:0.82rem;color:#7a849c; \}\
-\
-/* \uc0\u9552 \u9552 \u9552  SAVE STATUS \u9552 \u9552 \u9552  */\
-#save-status \{\
-  position:fixed;bottom:16px;right:20px;\
-  font-size:0.72rem;z-index:300;\
-  transition:opacity 0.4s;\
-  font-family:'JetBrains Mono',monospace;\
-\}\
-</style>\
-</head>\
-<body>\
-\
-<!-- \uc0\u9552 \u9552  LOGIN SCREEN \u9552 \u9552  -->\
-<div id="login-screen">\
-  <div class="login-card">\
-    <div class="login-logo"><span class="login-mark">\uc0\u9672 </span> \u29702 \u36001 \u21161 \u25163 </div>\
-    <div class="login-tagline">\uc0\u20491 \u20154 \u36001 \u21209 \u35215 \u21123 \u65292 \u36039 \u26009 \u21152 \u23494 \u20786 \u23384 <br>\u27599 \u20491 \u24115 \u34399 \u23436 \u20840 \u29544 \u31435 \u65292 \u28961 \u27861 \u20114 \u30456 \u26597 \u30475 </div>\
-\
-    <!-- Google OAuth -->\
-    <button class="btn-google" onclick="signInWithGoogle()">\
-      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>\
-      \uc0\u20351 \u29992  Google \u24115 \u34399 \u30331 \u20837 \
-    </button>\
-\
-    <div class="login-divider"><span>\uc0\u25110 \u29992  Email</span></div>\
-\
-    <div class="login-email-section" id="email-section">\
-      <input class="login-input" type="email" id="login-email" placeholder="your@email.com">\
-      <input class="login-input" type="password" id="login-password" placeholder="\uc0\u23494 \u30908 \u65288 \u33267 \u23569  6 \u20301 \u65289 ">\
-      <button class="btn-email-login" id="email-btn" onclick="signInWithEmail()">\uc0\u30331 \u20837  / \u35387 \u20874 </button>\
-      <div class="login-toggle">\uc0\u36996 \u27794 \u26377 \u24115 \u34399 \u65311 <span onclick="toggleMode()">\u40670 \u27492 \u20999 \u25563 </span>\u21040 \u35387 \u20874 \u27169 \u24335 </div>\
-      <div class="login-msg" id="login-msg"></div>\
-    </div>\
-\
-    <div class="login-privacy">\
-      
-\f1\b0 \uc0\u55357 \u56594 
-\f0\b  \uc0\u36039 \u26009 \u21152 \u23494 \u23384 \u26044  Supabase \u38642 \u31471 <br>\
-      \uc0\u27599 \u20154 \u21482 \u33021 \u35712 \u21462 \u33258 \u24049 \u30340 \u36039 \u26009 \u65292 \u21253 \u25324 \u31649 \u29702 \u21729 <br>\
-      \uc0\u20381  Supabase \u38577 \u31169 \u25919 \u31574 \u20445 \u35703 \
-    </div>\
-  </div>\
-</div>\
-\
-<!-- \uc0\u9552 \u9552  LOADING SCREEN \u9552 \u9552  -->\
-<div id="loading-screen">\
-  <div class="loading-logo">\uc0\u9672  \u29702 \u36001 \u21161 \u25163 </div>\
-  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>\
-  <div class="loading-msg" id="loading-msg">\uc0\u27491 \u22312 \u36617 \u20837 \u20320 \u30340 \u36039 \u26009 \'85</div>\
-</div>\
-\
-<!-- \uc0\u9552 \u9552  SAVE STATUS \u9552 \u9552  -->\
-<div id="save-status"></div>\
-\
-<!-- \uc0\u9552 \u9552  MAIN APP (\u21407 \u26377 \u20840 \u37096  HTML) \u9552 \u9552  -->\
-<div id="onboarding" style="display:none">\
-  <div class="ob-bg"></div>\
-  <div class="ob-top">\
-    <div class="ob-logo"><span class="ob-logo-mark">\uc0\u9672 </span> \u29702 \u36001 \u21161 \u25163 </div>\
-    <div class="ob-steps" id="ob-step-dots"></div>\
-  </div>\
-  <div class="ob-body" id="ob-body"></div>\
-  <div class="ob-nav">\
-    <div class="ob-nav-left">\
-      <button class="btn-back" id="btn-back" onclick="obBack()" style="display:none">\uc0\u8592  \u19978 \u19968 \u27493 </button>\
-      <span class="ob-progress-text" id="ob-progress-text"></span>\
-    </div>\
-    <div id="ob-nav-right">\
-      <button class="btn-next" id="btn-next" onclick="obNext()">\uc0\u32380 \u32396  \u8594 </button>\
-    </div>\
-  </div>\
-</div>\
-\
-<div id="app" style="display:none;flex-direction:row;height:100vh">\
-  <nav class="sidebar">\
-    <div class="sidebar-logo"><span class="sidebar-logo-mark">\uc0\u9672 </span> \u29702 \u36001 \u21161 \u25163 </div>\
-    <div class="nav-group-label">\uc0\u27010 \u35261 </div>\
-    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">\uc0\u9672 </span> \u36001 \u21209 \u20736 \u34920 \u26495 </div>\
-    <div class="nav-group-label">\uc0\u36001 \u21209 \u36039 \u26009 </div>\
-    <div class="nav-item" onclick="showPage('expenses')"><span class="nav-icon">\uc0\u8595 </span> \u25910 \u20837 \u33287 \u25903 \u20986 </div>\
-    <div class="nav-item" onclick="showPage('debt')"><span class="nav-icon">\uc0\u9888 </span> \u20661 \u21209 \u31649 \u29702 </div>\
-    <div class="nav-item" onclick="showPage('ledger')"><span class="nav-icon">\uc0\u8801 </span> \u27599 \u26376 \u35352 \u24115 </div>\
-    <div class="nav-group-label">\uc0\u36001 \u21209 \u35215 \u21123 </div>\
-    <div class="nav-item" onclick="showPage('plan')"><span class="nav-icon">\uc0\u9733 </span> AI \u35215 \u21123 \u24314 \u35696 </div>\
-    <div class="nav-item" onclick="showPage('goals')"><span class="nav-icon">\uc0\u9678 </span> \u30446 \u27161 \u36861 \u36452 </div>\
-    <div class="nav-item" onclick="showPage('invest')"><span class="nav-icon">\uc0\u8599 </span> \u25237 \u36039 \u37197 \u32622 </div>\
-    <div class="sidebar-bottom">\
-      <div class="user-chip">\
-        <div class="user-avatar" id="sidebar-avatar">?</div>\
-        <div style="flex:1;min-width:0">\
-          <div class="user-name" id="sidebar-name">\uc0\u20351 \u29992 \u32773 </div>\
-          <div style="font-size:0.68rem;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sidebar-email"></div>\
-          <div style="display:flex;gap:6px;margin-top:6px">\
-            <button onclick="resetOnboarding()" style="flex:1;padding:4px 0;background:transparent;border:1px solid var(--line2);border-radius:5px;color:var(--muted);font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'">\uc0\u37325 \u26032 \u35373 \u23450 </button>\
-            <button onclick="signOut()" style="flex:1;padding:4px 0;background:transparent;border:1px solid var(--line2);border-radius:5px;color:var(--muted);font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif" onmouseover="this.style.color='var(--rose)'" onmouseout="this.style.color='var(--muted)'">\uc0\u30331 \u20986 </button>\
-          </div>\
-        </div>\
-      </div>\
-    </div>\
-  </nav>\
-\
-  <div class="main-wrap">\
-    <div id="page-dashboard" class="page active">\
-      <div class="page-header">\
-        <div class="page-title" id="dash-title">\uc0\u36001 \u21209 \u20736 \u34920 \u26495 </div>\
-        <div class="page-sub" id="dash-sub">\uc0\u26412 \u26376 \u36001 \u21209 \u20581 \u24247 \u27010 \u35261 </div>\
-      </div>\
-      <div class="stat-row">\
-        <div class="stat"><div class="stat-l">\uc0\u26376 \u32317 \u25910 \u20837 </div><div class="stat-v gold" id="s-income">\'97</div><div class="stat-s">\u31237 \u24460 \u23526 \u38936 </div></div>\
-        <div class="stat"><div class="stat-l">\uc0\u22266 \u23450 \u25903 \u20986 </div><div class="stat-v rose" id="s-expense">\'97</div><div class="stat-s">\u27599 \u26376 \u22266 \u23450 </div></div>\
-        <div class="stat"><div class="stat-l">\uc0\u21487 \u37197 \u32622 \u39192 \u38989 </div><div class="stat-v teal" id="s-balance">\'97</div><div class="stat-s">\u24453 \u20998 \u37197 </div></div>\
-        <div class="stat"><div class="stat-l">\uc0\u36001 \u21209 \u20581 \u24247 \u20998 </div><div class="stat-v sky" id="s-score">\'97</div><div class="stat-s">100 \u20998 \u28415 \u20998 </div></div>\
-      </div>\
-      <div class="two-col">\
-        <div class="card"><div class="card-label">\uc0\u25903 \u20986 \u32080 \u27083 </div><div class="chart-box"><canvas id="chart-exp"></canvas></div></div>\
-        <div class="card"><div class="card-label">\uc0\u36039 \u37329 \u37197 \u32622  \u23526 \u38555  vs \u24314 \u35696 </div><div class="chart-box"><canvas id="chart-alloc"></canvas></div></div>\
-      </div>\
-      <div class="card"><div class="card-label">\uc0\u30446 \u27161 \u36914 \u24230 </div><div id="dash-goals"></div></div>\
-    </div>\
-\
-    <div id="page-expenses" class="page">\
-      <div class="page-header"><div class="page-title">\uc0\u25910 \u20837 \u33287 \u22266 \u23450 \u25903 \u20986 </div><div class="page-sub">\u21363 \u26178 \u35519 \u25972 \u26412 \u26376 \u25910 \u20837 \u65292 \u25903 \u20986 \u21487 \u35373 \u23450 \u22266 \u23450 \u37329 \u38989 \u25110 \u25910 \u20837 \u27604 \u20363 </div></div>\
-      <div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.04)">\
-        <div class="card-label">\uc0\u26412 \u26376 \u25910 \u20837 \u35519 \u25972 </div>\
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end">\
-          <div class="field-group"><label class="field-label">\uc0\u26412 \u20154 \u26376 \u25910 \u20837  $</label><input class="field-input" id="adj-income" type="number" placeholder="80000" oninput="adjustIncome()"></div>\
-          <div class="field-group"><label class="field-label">\uc0\u37197 \u20598 \u26376 \u25910 \u20837  $</label><input class="field-input" id="adj-spouse" type="number" placeholder="0" oninput="adjustIncome()"></div>\
-          <div class="field-group"><label class="field-label">\uc0\u20854 \u20182 \u25910 \u20837  $</label><input class="field-input" id="adj-other" type="number" placeholder="0" oninput="adjustIncome()"></div>\
-          <div style="padding-bottom:1px"><div style="font-size:0.7rem;color:var(--muted);margin-bottom:5px">\uc0\u26376 \u25910 \u20837 \u21512 \u35336 </div><div id="adj-total" style="font-family:'JetBrains Mono',monospace;font-size:1.4rem;color:var(--gold2);white-space:nowrap">$0</div></div>\
-        </div>\
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap">\
-          <span style="font-size:0.75rem;color:var(--muted)">\uc0\u24555 \u36895 \u27169 \u25836 \u65306 </span>\
-          <button class="btn-sim" onclick="simIncome(0.8)">\uc0\u26412 \u26376 \u23569  20%</button>\
-          <button class="btn-sim" onclick="simIncome(0.9)">\uc0\u26412 \u26376 \u23569  10%</button>\
-          <button class="btn-sim" onclick="simIncome(1.0)">\uc0\u22238 \u24489 \u27491 \u24120 </button>\
-          <button class="btn-sim" onclick="simIncome(1.1)">\uc0\u22810  10%\u65288 \u29518 \u37329 \u65289 </button>\
-          <button class="btn-sim" onclick="simIncome(1.2)">\uc0\u22810  20%\u65288 \u29518 \u37329 \u65289 </button>\
-        </div>\
-      </div>\
-      <div class="card">\
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">\
-          <div class="card-label" style="margin-bottom:0">\uc0\u25903 \u20986 \u38917 \u30446 </div>\
-          <div style="display:flex;gap:6px;align-items:center">\
-            <span style="font-size:0.72rem;color:var(--muted)">\uc0\u37329 \u38989 \u27169 \u24335 \u65306 </span>\
-            <button id="mode-fixed-btn" class="mode-btn active" onclick="setExpMode('fixed')">\uc0\u22266 \u23450 \u37329 \u38989 </button>\
-            <button id="mode-ratio-btn" class="mode-btn" onclick="setExpMode('ratio')">\uc0\u25910 \u20837 \u27604 \u20363 </button>\
-          </div>\
-        </div>\
-        <div id="exp-list-header" style="display:grid;gap:8px;padding-bottom:10px;font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);"></div>\
-        <div id="exp-list" style="margin-top:10px"></div>\
-        <button class="btn-addrow" style="margin-top:8px" onclick="addExpRow()">\uc0\u65291  \u26032 \u22686 \u25903 \u20986 \u38917 \u30446 </button>\
-      </div>\
-      <div class="card" style="background:rgba(212,168,67,0.03)">\
-        <div class="card-label">\uc0\u26412 \u26376 \u25903 \u20986 \u25688 \u35201 </div>\
-        <div class="stat-row" style="grid-template-columns:repeat(4,1fr)">\
-          <div class="stat"><div class="stat-l">\uc0\u25903 \u20986 \u21512 \u35336 </div><div class="stat-v rose" id="exp-total-v">\'97</div></div>\
-          <div class="stat"><div class="stat-l">\uc0\u25903 \u20986 \u21344 \u25910 \u20837 </div><div class="stat-v" id="exp-ratio-v">\'97</div></div>\
-          <div class="stat"><div class="stat-l">\uc0\u26376 \u21487 \u29992 \u39192 \u38989 </div><div class="stat-v teal" id="exp-remain-v">\'97</div></div>\
-          <div class="stat"><div class="stat-l">\uc0\u27604 \u20363 \u38917 \u30446 \u23567 \u35336 </div><div class="stat-v sky" id="exp-ratio-sum-v">\'97</div></div>\
-        </div>\
-        <div style="margin-top:14px">\
-          <div style="font-size:0.72rem;color:var(--faint);margin-bottom:6px">\uc0\u25903 \u20986 \u20998 \u20296 </div>\
-          <div id="exp-breakdown-bar" style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:1px"></div>\
-          <div id="exp-breakdown-legend" style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px"></div>\
-        </div>\
-      </div>\
-    </div>\
-\
-    <div id="page-debt" class="page">\
-      <div class="page-header"><div class="page-title">\uc0\u20661 \u21209 \u31649 \u29702 </div><div class="page-sub">\u35352 \u37636 \u20006 \u35215 \u21123 \u28165 \u20767 \u31574 \u30053 </div></div>\
-      <div class="card">\
-        <div class="card-label">\uc0\u20661 \u21209 \u26126 \u32048 </div>\
-        <div style="display:grid;grid-template-columns:1fr 130px 80px 110px 30px;gap:8px;padding-bottom:10px;font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);">\
-          <span>\uc0\u21517 \u31281 </span><span>\u32317 \u37329 \u38989 </span><span>\u24180 \u21033 \u29575 %</span><span>\u26368 \u20302 \u36996 \u27454 </span><span></span>\
-        </div>\
-        <div id="debt-list" style="margin-top:10px"></div>\
-        <button class="btn-addrow" style="margin-top:8px" onclick="addDebtRow()">\uc0\u65291  \u26032 \u22686 \u20661 \u21209 </button>\
-      </div>\
-      <div id="debt-strategy" class="card" style="display:none">\
-        <div class="card-label">\uc0\u28165 \u20767 \u31574 \u30053 \u24314 \u35696 </div>\
-        <div id="debt-strategy-body"></div>\
-      </div>\
-    </div>\
-\
-    <div id="page-ledger" class="page">\
-      <div class="page-header"><div class="page-title">\uc0\u27599 \u26376 \u35352 \u24115 </div><div class="page-sub">\u30331 \u35352 \u26412 \u26376 \u23526 \u38555 \u25910 \u25903 </div></div>\
-      <div class="card">\
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">\
-          <select id="ledger-month" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none"></select>\
-          <button class="btn-addrow" onclick="addLedgerRow()">\uc0\u65291  \u26032 \u22686 \u35352 \u37636 </button>\
-        </div>\
-        <div class="ledger-header"><span>\uc0\u26085 \u26399 </span><span>\u38917 \u30446 </span><span>\u37329 \u38989 </span><span>\u39006 \u22411 </span><span></span></div>\
-        <div id="ledger-list"></div>\
-        <hr class="divider">\
-        <div style="display:flex;justify-content:flex-end;gap:24px;font-family:'JetBrains Mono',monospace;font-size:0.85rem">\
-          <span style="color:var(--muted)">\uc0\u25910 \u20837 \u65306 <span class="l-income" id="l-total-in">$0</span></span>\
-          <span style="color:var(--muted)">\uc0\u25903 \u20986 \u65306 <span class="l-expense" id="l-total-out">$0</span></span>\
-          <span style="color:var(--muted)">\uc0\u32080 \u39192 \u65306 <span id="l-net" style="color:var(--gold2)">$0</span></span>\
-        </div>\
-      </div>\
-    </div>\
-\
-    <div id="page-plan" class="page">\
-      <div class="page-header"><div class="page-title">AI \uc0\u36001 \u21209 \u35215 \u21123 \u24314 \u35696 </div><div class="page-sub">\u26681 \u25818 \u20320 \u30340 \u23526 \u38555 \u36001 \u21209 \u29376 \u27841 \u29986 \u29983 \u20491 \u20154 \u21270 \u35215 \u21123 </div></div>\
-      <div id="plan-body"></div>\
-    </div>\
-\
-    <div id="page-goals" class="page">\
-      <div class="page-header"><div class="page-title">\uc0\u36001 \u21209 \u30446 \u27161 \u36861 \u36452 </div><div class="page-sub">\u35373 \u23450 \u20006 \u36861 \u36452 \u37325 \u22823 \u36001 \u21209 \u30446 \u27161 </div></div>\
-      <div class="card">\
-        <div class="card-label">\uc0\u26032 \u22686 \u30446 \u27161 </div>\
-        <div class="form-grid-3" style="margin-bottom:12px">\
-          <div class="field-group"><label class="field-label">\uc0\u30446 \u27161 \u21517 \u31281 </label><input class="field-input" id="g-name" placeholder="\u20363 \u65306 \u36023 \u25151 \u38957 \u26399 \u27454 "></div>\
-          <div class="field-group"><label class="field-label">\uc0\u30446 \u27161 \u37329 \u38989  $</label><input class="field-input" id="g-target" type="number" placeholder="1000000"></div>\
-          <div class="field-group"><label class="field-label">\uc0\u24050 \u23384 \u37329 \u38989  $</label><input class="field-input" id="g-saved" type="number" placeholder="0"></div>\
-        </div>\
-        <div class="form-grid-3" style="margin-bottom:16px">\
-          <div class="field-group"><label class="field-label">\uc0\u27599 \u26376 \u23384 \u20837  $</label><input class="field-input" id="g-monthly" type="number" placeholder="5000"></div>\
-          <div class="field-group"><label class="field-label">\uc0\u22294 \u31034 </label>\
-            <select class="field-input" id="g-icon">\
-              <option value="
-\f1\b0 \uc0\u55356 \u57312 
-\f0\b ">
-\f1\b0 \uc0\u55356 \u57312 
-\f0\b  \uc0\u36023 \u25151 </option><option value="
-\f1\b0 \uc0\u55357 \u56983 
-\f0\b ">
-\f1\b0 \uc0\u55357 \u56983 
-\f0\b  \uc0\u36023 \u36554 </option>\
-              <option value="
-\f1\b0 \uc0\u55356 \u57235 
-\f0\b ">
-\f1\b0 \uc0\u55356 \u57235 
-\f0\b  \uc0\u25945 \u32946 \u22522 \u37329 </option><option value="
-\f1\b0 \uc0\u55356 \u57318 
-\f0\b ">
-\f1\b0 \uc0\u55356 \u57318 
-\f0\b  \uc0\u32202 \u24613 \u38928 \u20633 \u37329 </option>\
-              <option value="
-\f1\b0 \uc0\u9992 \u65039 
-\f0\b ">
-\f1\b0 \uc0\u9992 \u65039 
-\f0\b  \uc0\u26053 \u36938 </option><option value="
-\f1\b0 \uc0\u55357 \u56496 
-\f0\b ">
-\f1\b0 \uc0\u55357 \u56496 
-\f0\b  \uc0\u30334 \u33836 \u20786 \u33988 </option>\
-              <option value="
-\f1\b0 \uc0\u55357 \u56520 
-\f0\b ">
-\f1\b0 \uc0\u55357 \u56520 
-\f0\b  \uc0\u25237 \u36039 \u22522 \u37329 </option><option value="
-\f1\b0 \uc0\u55356 \u57263 
-\f0\b ">
-\f1\b0 \uc0\u55356 \u57263 
-\f0\b  \uc0\u20854 \u20182 </option>\
-            </select>\
-          </div>\
-          <div class="field-group"><label class="field-label">&nbsp;</label><button class="btn-p" onclick="addGoal()">\uc0\u65291  \u26032 \u22686 \u30446 \u27161 </button></div>\
-        </div>\
-      </div>\
-      <div class="goal-grid" id="goals-grid"></div>\
-    </div>\
-\
-    <div id="page-invest" class="page">\
-      <div class="page-header"><div class="page-title">\uc0\u25237 \u36039 \u37197 \u32622 \u24314 \u35696 </div><div class="page-sub">\u31337 \u20581 \u25104 \u38263 \u22411 \u25237 \u36039 \u32068 \u21512 \u24314 \u35696 \u65288 \u38750 \u25237 \u36039 \u24314 \u35696 \u65292 \u20677 \u20379 \u21443 \u32771 \u65289 </div></div>\
-      <div id="invest-body"></div>\
-    </div>\
-  </div>\
-</div>\
-\
-<style>\
-/* \uc0\u23559 \u21407 \u26377  finance.html \u30340 \u20840 \u37096  CSS \u23884 \u20837 \u27492 \u34389  */\
-:root\{--ink:#0e1117;--ink2:#161c27;--ink3:#1e2535;--ink4:#252e42;--line:#2c3550;--line2:#3a4568;--gold:#d4a843;--gold2:#ecc96b;--gold3:#f5dfa0;--golddim:#5a4618;--teal:#3ecfb2;--tealdim:#1a3d35;--rose:#e05b6a;--rosedim:#3d1a20;--sky:#4f9de8;--skydim:#1a2d42;--muted:#7a849c;--faint:#4a5268;--text:#e4e8f4\}\
-*\{box-sizing:border-box;margin:0;padding:0\}\
-html,body\{height:100%;overflow:hidden\}\
-body\{font-family:'Noto Sans TC',sans-serif;background:var(--ink);color:var(--text);overflow:hidden\}\
-#onboarding\{position:fixed;inset:0;z-index:1000;background:var(--ink);display:flex;flex-direction:column;overflow:hidden\}\
-.ob-bg\{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 10% 90%,rgba(212,168,67,0.07) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 90% 10%,rgba(62,207,178,0.05) 0%,transparent 70%);pointer-events:none\}\
-.ob-top\{padding:28px 48px 0;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1\}\
-.ob-logo\{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--gold);letter-spacing:0.04em;display:flex;align-items:center;gap:8px\}\
-.ob-logo-mark\{font-size:1.5rem;line-height:1\}\
-.ob-steps\{display:flex;gap:6px;align-items:center\}\
-.ob-step-dot\{width:28px;height:4px;border-radius:2px;background:var(--line2);transition:all 0.4s\}\
-.ob-step-dot.done\{background:var(--gold)\}\
-.ob-step-dot.active\{background:var(--gold2);width:44px\}\
-.ob-body\{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 48px;position:relative;z-index:1;overflow:hidden\}\
-.ob-slide\{width:100%;max-width:680px;animation:slideIn 0.4s cubic-bezier(0.34,1.2,0.64,1)\}\
-@keyframes slideIn\{from\{opacity:0;transform:translateY(24px)\}to\{opacity:1;transform:translateY(0)\}\}\
-@keyframes dotPulse\{0%,100%\{opacity:0.3;transform:scale(0.8)\}50%\{opacity:1;transform:scale(1.1)\}\}\
-.ob-step-label\{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px\}\
-.ob-step-label::before\{content:'';display:block;width:20px;height:2px;background:var(--gold);border-radius:1px\}\
-.ob-q\{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;line-height:1.3;color:var(--text);margin-bottom:8px\}\
-.ob-hint\{font-size:0.85rem;color:var(--muted);margin-bottom:28px;line-height:1.6\}\
-.ob-input-wrap\{position:relative;margin-bottom:14px\}\
-.ob-input-prefix\{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--golddim);font-family:'JetBrains Mono',monospace;font-size:0.95rem;pointer-events:none\}\
-.ob-input\{width:100%;background:var(--ink3);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.95rem;outline:none;transition:border-color 0.2s,background 0.2s\}\
-.ob-input:focus\{border-color:var(--golddim);background:var(--ink4)\}\
-.ob-input.has-prefix\{padding-left:32px\}\
-.ob-input::placeholder\{color:var(--faint)\}\
-.ob-label-small\{font-size:0.78rem;color:var(--muted);margin-bottom:6px;display:block\}\
-.chip-group\{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px\}\
-.chip\{padding:8px 16px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--muted);font-size:0.84rem;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans TC',sans-serif\}\
-.chip:hover\{border-color:var(--golddim);color:var(--text)\}\
-.chip.selected\{border-color:var(--gold);background:rgba(212,168,67,0.12);color:var(--gold2)\}\
-.chip.multi-select.selected\{background:rgba(62,207,178,0.1);border-color:var(--teal);color:var(--teal)\}\
-.ob-grid\{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px\}\
-.exp-row\{display:grid;grid-template-columns:140px 1fr 130px 30px;gap:8px;align-items:center;margin-bottom:8px\}\
-.exp-row select,.exp-row input\{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s\}\
-.exp-row input:focus,.exp-row select:focus\{border-color:var(--golddim)\}\
-.exp-row select option\{background:var(--ink3)\}\
-.btn-del\{width:28px;height:28px;border-radius:6px;border:1px solid var(--rosedim);background:transparent;color:var(--rose);cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0\}\
-.btn-del:hover\{background:var(--rosedim)\}\
-.btn-addrow\{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px dashed var(--line2);border-radius:8px;background:transparent;color:var(--faint);font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans TC',sans-serif\}\
-.btn-addrow:hover\{border-color:var(--golddim);color:var(--gold)\}\
-.debt-row\{display:grid;grid-template-columns:1fr 130px 80px 110px 30px;gap:8px;align-items:center;margin-bottom:8px\}\
-.debt-row input,.debt-row select\{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s\}\
-.debt-row input:focus,.debt-row select:focus\{border-color:var(--golddim)\}\
-.ob-nav\{padding:0 48px 32px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1\}\
-.ob-nav-left\{display:flex;align-items:center;gap:10px\}\
-.btn-back\{padding:11px 22px;background:transparent;border:1px solid var(--line2);border-radius:10px;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.2s\}\
-.btn-back:hover\{border-color:var(--line);color:var(--text)\}\
-.btn-next\{padding:12px 32px;background:var(--gold);border:none;border-radius:10px;color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px\}\
-.btn-next:hover\{background:var(--gold2);transform:translateY(-1px)\}\
-.btn-finish\{padding:12px 36px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.25s;box-shadow:0 4px 24px rgba(212,168,67,0.3)\}\
-.btn-finish:hover\{transform:translateY(-2px);box-shadow:0 8px 32px rgba(212,168,67,0.4)\}\
-.ob-progress-text\{font-size:0.78rem;color:var(--faint)\}\
-#ob-summary\{width:100%;max-width:680px;animation:slideIn 0.4s cubic-bezier(0.34,1.2,0.64,1)\}\
-.sum-section\{background:var(--ink3);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:12px\}\
-.sum-title\{font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;display:flex;align-items:center;gap:8px\}\
-.sum-title::before\{content:'';display:block;width:16px;height:2px;background:var(--gold);border-radius:1px\}\
-.sum-row\{display:flex;justify-content:space-between;align-items:baseline;font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(44,53,80,0.5)\}\
-.sum-row:last-child\{border-bottom:none\}\
-.sum-key\{color:var(--muted)\}.sum-val\{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text)\}\
-.sum-val.gold\{color:var(--gold2)\}.sum-val.rose\{color:var(--rose)\}.sum-val.teal\{color:var(--teal)\}\
-#app\{display:none\}\
-.sidebar\{width:210px;min-width:210px;background:var(--ink2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:0;overflow:hidden\}\
-.sidebar-logo\{padding:22px 20px 18px;font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px\}\
-.sidebar-logo-mark\{font-size:1.2rem\}\
-.nav-group-label\{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);padding:16px 20px 6px\}\
-.nav-item\{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;font-size:0.84rem;color:var(--muted);border-left:2px solid transparent;transition:all 0.15s\}\
-.nav-item:hover\{color:var(--text);background:rgba(255,255,255,0.02)\}\
-.nav-item.active\{color:var(--gold2);border-left-color:var(--gold);background:rgba(212,168,67,0.06)\}\
-.nav-icon\{width:18px;text-align:center;font-size:0.95rem\}\
-.sidebar-bottom\{margin-top:auto;padding:16px 20px;border-top:1px solid var(--line)\}\
-.user-chip\{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:all 0.2s\}\
-.user-avatar\{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--golddim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:600;color:var(--ink);flex-shrink:0\}\
-.user-name\{font-size:0.8rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis\}\
-.main-wrap\{flex:1;overflow-y:auto;background:var(--ink)\}\
-.page\{display:none;padding:36px 40px;max-width:1020px\}\
-.page.active\{display:block\}\
-.page-header\{margin-bottom:28px\}\
-.page-title\{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--gold3);margin-bottom:4px\}\
-.page-sub\{font-size:0.85rem;color:var(--muted)\}\
-.card\{background:var(--ink2);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:18px\}\
-.card-label\{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--faint);margin-bottom:16px;display:flex;align-items:center;gap:8px\}\
-.card-label::before\{content:'';display:block;width:14px;height:2px;background:var(--gold);border-radius:1px\}\
-.stat-row\{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px\}\
-.stat\{background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:16px 18px\}\
-.stat-l\{font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);margin-bottom:7px\}\
-.stat-v\{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:500\}\
-.stat-v.gold\{color:var(--gold2)\}.stat-v.teal\{color:var(--teal)\}.stat-v.rose\{color:var(--rose)\}.stat-v.sky\{color:var(--sky)\}\
-.stat-s\{font-size:0.68rem;color:var(--faint);margin-top:3px\}\
-.prog\{margin-bottom:14px\}\
-.prog-head\{display:flex;justify-content:space-between;margin-bottom:6px;align-items:baseline\}\
-.prog-name\{font-size:0.86rem;color:var(--text)\}\
-.prog-info\{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted)\}\
-.prog-track\{height:6px;background:var(--ink4);border-radius:3px;overflow:hidden\}\
-.prog-fill\{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(0.34,1.3,0.64,1)\}\
-.prog-fill.gold\{background:linear-gradient(90deg,var(--golddim),var(--gold2))\}\
-.prog-fill.teal\{background:linear-gradient(90deg,var(--tealdim),var(--teal))\}\
-.prog-fill.sky\{background:linear-gradient(90deg,var(--skydim),var(--sky))\}\
-.prog-fill.rose\{background:linear-gradient(90deg,var(--rosedim),var(--rose))\}\
-.plan-item\{display:grid;grid-template-columns:32px 1fr auto;gap:14px;align-items:flex-start;padding:16px 0;border-bottom:1px solid rgba(44,53,80,0.6)\}\
-.plan-item:last-child\{border-bottom:none\}\
-.plan-num\{width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:2px\}\
-.plan-t\{font-size:0.9rem;font-weight:500;margin-bottom:4px;color:var(--text)\}\
-.plan-d\{font-size:0.8rem;color:var(--muted);line-height:1.65\}\
-.plan-amt\{font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--gold2);white-space:nowrap;text-align:right;min-width:110px\}\
-.plan-amt small\{display:block;font-size:0.68rem;color:var(--faint);margin-top:2px\}\
-.alert\{border-radius:9px;padding:13px 16px;font-size:0.83rem;line-height:1.65;margin-bottom:14px;display:flex;gap:10px\}\
-.alert-icon\{font-size:1rem;flex-shrink:0;margin-top:1px\}\
-.alert.warn\{background:rgba(212,168,67,0.08);border:1px solid var(--golddim);color:var(--gold3)\}\
-.alert.ok\{background:rgba(62,207,178,0.07);border:1px solid rgba(62,207,178,0.25);color:var(--teal)\}\
-.alert.info\{background:rgba(79,157,232,0.07);border:1px solid rgba(79,157,232,0.25);color:var(--sky)\}\
-.alert.bad\{background:var(--rosedim);border:1px solid rgba(224,91,106,0.3);color:var(--rose)\}\
-.badge\{display:inline-block;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:500;letter-spacing:0.04em\}\
-.badge-gold\{background:rgba(212,168,67,0.15);color:var(--gold)\}.badge-teal\{background:rgba(62,207,178,0.12);color:var(--teal)\}\
-.badge-rose\{background:rgba(224,91,106,0.12);color:var(--rose)\}.badge-sky\{background:rgba(79,157,232,0.12);color:var(--sky)\}\
-.two-col\{display:grid;grid-template-columns:1fr 1fr;gap:18px\}\
-.chart-box\{position:relative;height:210px\}\
-.ledger-header\{display:grid;grid-template-columns:100px 1fr 130px 100px 32px;gap:8px;padding:0 0 10px;font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);margin-bottom:6px\}\
-.ledger-row\{display:grid;grid-template-columns:100px 1fr 130px 100px 32px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(44,53,80,0.4)\}\
-.ledger-row input,.ledger-row select\{background:var(--ink3);border:1px solid transparent;border-radius:6px;padding:6px 9px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.8rem;outline:none;width:100%;transition:border-color 0.2s\}\
-.ledger-row input:focus,.ledger-row select:focus\{border-color:var(--golddim)\}\
-.l-income\{color:var(--teal)\}.l-expense\{color:var(--rose)\}\
-.goal-card\{background:var(--ink3);border:1px solid var(--line);border-radius:10px;padding:16px 18px\}\
-.goal-head\{display:flex;align-items:center;gap:10px;margin-bottom:12px\}\
-.goal-ico\{font-size:1.3rem\}.goal-ttl\{font-size:0.88rem;font-weight:500\}\
-.goal-sub\{font-size:0.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace\}\
-.goal-grid\{display:grid;grid-template-columns:1fr 1fr;gap:12px\}\
-.inv-row\{display:grid;grid-template-columns:32px 1fr 80px auto 110px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(44,53,80,0.5)\}\
-.inv-row:last-child\{border-bottom:none\}\
-.inv-dot\{width:10px;height:10px;border-radius:50%;flex-shrink:0\}\
-.btn-p\{padding:11px 26px;background:var(--gold);border:none;border-radius:9px;color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px\}\
-.btn-p:hover\{background:var(--gold2);transform:translateY(-1px)\}\
-.btn-s\{padding:11px 20px;background:transparent;border:1px solid var(--line2);border-radius:9px;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-size:0.85rem;cursor:pointer;transition:all 0.2s\}\
-.btn-s:hover\{border-color:var(--golddim);color:var(--gold)\}\
-.divider\{border:none;border-top:1px solid var(--line);margin:18px 0\}\
-.field-label\{font-size:0.75rem;color:var(--muted);margin-bottom:5px;display:block\}\
-.field-input\{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.88rem;outline:none;transition:border-color 0.2s;width:100%\}\
-.field-input:focus\{border-color:var(--golddim)\}\
-.field-group\{display:flex;flex-direction:column;gap:5px\}\
-.form-grid\{display:grid;grid-template-columns:1fr 1fr;gap:14px\}\
-.form-grid-3\{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px\}\
-.mode-btn\{padding:5px 12px;border-radius:6px;font-size:0.75rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all 0.18s\}\
-.mode-btn.active\{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:600\}\
-.mode-btn:hover:not(.active)\{border-color:var(--golddim);color:var(--gold)\}\
-.btn-sim\{padding:5px 11px;border-radius:6px;font-size:0.73rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all 0.18s\}\
-.btn-sim:hover\{border-color:var(--gold2);color:var(--gold2);background:rgba(212,168,67,0.08)\}\
-.computed-amt\{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--teal);background:var(--tealdim);border-radius:6px;padding:9px 10px;text-align:right;border:1px solid rgba(62,207,178,0.2);white-space:nowrap\}\
-@media(max-width:700px)\{.stat-row\{grid-template-columns:1fr 1fr\}.two-col,.goal-grid,.form-grid\{grid-template-columns:1fr\}.sidebar\{display:none\}.ob-q\{font-size:1.5rem\}.ob-top,.ob-body,.ob-nav\{padding-left:20px;padding-right:20px\}\}\
-</style>\
-\
-<script>\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  
-\f1\b0 \uc0\u9881 \u65039 
-\f0\b   SUPABASE \uc0\u35373 \u23450  \'97 \u22635 \u20837 \u20320 \u33258 \u24049 \u30340 \u20540 \
-//  \uc0\u24314 \u31435 \u23560 \u26696 \u24460 \u22312  Settings > API \u25214 \u21040 \
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-const SUPABASE_URL  = '{\field{\*\fldinst{HYPERLINK "https://inbszlvdplcktufvyzml.supabase.co"}}{\fldrslt https://inbszlvdplcktufvyzml.supabase.co}}';\
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluYnN6bHZkcGxja3R1ZnZ5em1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjUwNzUsImV4cCI6MjA4Nzk0MTA3NX0.5GiWP8Ukqzf9XA0IfTZ3iE8Uf70c-ZEyb0Lo-BowA0w';\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  Supabase \uc0\u21021 \u22987 \u21270 \
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-const \{ createClient \} = supabase;\
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);\
-\
-let currentUser = null;\
-\
-// \uc0\u9472 \u9472  \u30331 \u20837 \u27169 \u24335 \u20999 \u25563  \u9472 \u9472 \
-let emailMode = 'login'; // 'login' | 'register'\
-function toggleMode() \{\
-  emailMode = emailMode === 'login' ? 'register' : 'login';\
-  const btn = document.getElementById('email-btn');\
-  const toggle = document.querySelector('.login-toggle');\
-  if (emailMode === 'register') \{\
-    btn.textContent = '\uc0\u35387 \u20874 \u26032 \u24115 \u34399 ';\
-    toggle.innerHTML = '\uc0\u24050 \u26377 \u24115 \u34399 \u65311 <span onclick="toggleMode()">\u40670 \u27492 \u20999 \u25563 </span>\u21040 \u30331 \u20837 \u27169 \u24335 ';\
-  \} else \{\
-    btn.textContent = '\uc0\u30331 \u20837  / \u35387 \u20874 ';\
-    toggle.innerHTML = '\uc0\u36996 \u27794 \u26377 \u24115 \u34399 \u65311 <span onclick="toggleMode()">\u40670 \u27492 \u20999 \u25563 </span>\u21040 \u35387 \u20874 \u27169 \u24335 ';\
-  \}\
-\}\
-\
-function setLoginMsg(msg, isErr) \{\
-  const el = document.getElementById('login-msg');\
-  el.textContent = msg;\
-  el.className = 'login-msg ' + (isErr ? 'err' : 'ok');\
-\}\
-\
-// \uc0\u9472 \u9472  Google OAuth \u30331 \u20837  \u9472 \u9472 \
-async function signInWithGoogle() \{\
-  const \{ error \} = await sb.auth.signInWithOAuth(\{\
-    provider: 'google',\
-    options: \{ redirectTo: window.location.href \}\
-  \});\
-  if (error) setLoginMsg('\uc0\u30331 \u20837 \u22833 \u25943 \u65306 ' + error.message, true);\
-\}\
-\
-// \uc0\u9472 \u9472  Email \u30331 \u20837  / \u35387 \u20874  \u9472 \u9472 \
-async function signInWithEmail() \{\
-  const email = document.getElementById('login-email').value.trim();\
-  const password = document.getElementById('login-password').value;\
-  if (!email || !password) \{ setLoginMsg('\uc0\u35531 \u22635 \u20837  Email \u21644 \u23494 \u30908 ', true); return; \}\
-\
-  setLoginMsg('\uc0\u34389 \u29702 \u20013 \'85', false);\
-  let result;\
-  if (emailMode === 'register') \{\
-    result = await sb.auth.signUp(\{ email, password \});\
-    if (!result.error && result.data.user?.identities?.length === 0) \{\
-      setLoginMsg('\uc0\u27492  Email \u24050 \u35387 \u20874 \u65292 \u35531 \u30452 \u25509 \u30331 \u20837 ', true); return;\
-    \}\
-    if (!result.error) \{ setLoginMsg('\uc0\u10003  \u35387 \u20874 \u25104 \u21151 \u65281 \u35531 \u26597 \u25910 \u39511 \u35657 \u20449 \u24460 \u30331 \u20837 ', false); return; \}\
-  \} else \{\
-    result = await sb.auth.signInWithPassword(\{ email, password \});\
-  \}\
-  if (result.error) \{ setLoginMsg('\uc0\u37679 \u35492 \u65306 ' + result.error.message, true); return; \}\
-  // onAuthStateChange will handle the rest\
-\}\
-\
-// \uc0\u9472 \u9472  \u30331 \u20986  \u9472 \u9472 \
-async function signOut() \{\
-  if (!confirm('\uc0\u30906 \u23450 \u35201 \u30331 \u20986 \u21966 \u65311 ')) return;\
-  await sb.auth.signOut();\
-  currentUser = null;\
-  document.getElementById('login-screen').style.display = 'flex';\
-  document.getElementById('app').style.display = 'none';\
-  document.getElementById('onboarding').style.display = 'none';\
-\}\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  \uc0\u36039 \u26009 \u23384 \u21462 \u23652 \u65288 Supabase Firestore-style\u65289 \
-//  table: finance_data\
-//  row:   (user_id, key, value)  \uc0\u8592  Row Level Security\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-async function dbLoad(key) \{\
-  const \{ data, error \} = await sb\
-    .from('finance_data')\
-    .select('value')\
-    .eq('key', key)\
-    .single();\
-  if (error || !data) return null;\
-  try \{ return JSON.parse(data.value); \} catch \{ return null; \}\
-\}\
-\
-async function dbSave(key, value) \{\
-  const \{ error \} = await sb\
-    .from('finance_data')\
-    .upsert(\{ key, value: JSON.stringify(value) \}, \{ onConflict: 'key' \});\
-  return !error;\
-\}\
-\
-async function dbLoadAll() \{\
-  const \{ data, error \} = await sb\
-    .from('finance_data')\
-    .select('key, value');\
-  if (error || !data) return \{\};\
-  const result = \{\};\
-  data.forEach(row => \{\
-    try \{ result[row.key] = JSON.parse(row.value); \} catch \{\}\
-  \});\
-  return result;\
-\}\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  \uc0\u33258 \u21205 \u23384 \u27284 \
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-let saveTimer = null;\
-function scheduleSave() \{\
-  if (!currentUser) return;\
-  clearTimeout(saveTimer);\
-  setSaveStatus('saving');\
-  saveTimer = setTimeout(doSave, 1800);\
-\}\
-\
-async function doSave() \{\
-  const payload = \{\
-    profile:  obData,\
-    income:   \{ net: appState.incomeNet, spouse: appState.incomeSpouse, other: appState.incomeOther \},\
-    expenses: appState.expenses,\
-    debts:    appState.debts,\
-    goals:    appState.goals,\
-    ledger:   appState.ledger,\
-  \};\
-  const results = await Promise.all(\
-    Object.entries(payload).map(([k, v]) => dbSave(k, v))\
-  );\
-  setSaveStatus(results.every(Boolean) ? 'ok' : 'err');\
-\}\
-\
-function setSaveStatus(state) \{\
-  const el = document.getElementById('save-status');\
-  if (!el) return;\
-  if (state === 'saving') \{ el.textContent = '\uc0\u20786 \u23384 \u20013 \'85'; el.style.color = 'var(--muted)'; \}\
-  else if (state === 'ok') \{\
-    const t = new Date().toLocaleTimeString('zh-TW', \{hour:'2-digit', minute:'2-digit'\});\
-    el.textContent = '\uc0\u10003  \u24050 \u20786 \u23384  ' + t;\
-    el.style.color = 'var(--teal)';\
-    setTimeout(() => \{ if(el) el.textContent = ''; \}, 5000);\
-  \} else \{\
-    el.textContent = '\uc0\u9888  \u20786 \u23384 \u22833 \u25943 \u65292 \u35531 \u27298 \u26597 \u32178 \u36335 ';\
-    el.style.color = 'var(--rose)';\
-  \}\
-\}\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  Auth \uc0\u29376 \u24907 \u30435 \u32893 \u65306 \u30331 \u20837 \u24460 \u36617 \u20837 \u36039 \u26009 \
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-sb.auth.onAuthStateChange(async (event, session) => \{\
-  if (event === 'SIGNED_IN' && session) \{\
-    currentUser = session.user;\
-    document.getElementById('login-screen').style.display = 'none';\
-    showLoading('\uc0\u27491 \u22312 \u36617 \u20837 \u20320 \u30340 \u36001 \u21209 \u36039 \u26009 \'85');\
-    await loadUserData();\
-    hideLoading();\
-  \} else if (event === 'SIGNED_OUT') \{\
-    currentUser = null;\
-  \}\
-\});\
-\
-async function loadUserData() \{\
-  const all = await dbLoadAll();\
-\
-  // Update sidebar\
-  const email = currentUser.email || '';\
-  const name = currentUser.user_metadata?.full_name || email.split('@')[0];\
-  document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();\
-  document.getElementById('sidebar-name').textContent = name;\
-  document.getElementById('sidebar-email').textContent = email;\
-\
-  if (all.profile && all.profile.name) \{\
-    // Returning user \'97 load everything\
-    obData = all.profile;\
-    if (all.income) \{\
-      appState.incomeNet    = all.income.net    || 0;\
-      appState.incomeSpouse = all.income.spouse || 0;\
-      appState.incomeOther  = all.income.other  || 0;\
-    \}\
-    appState.expenses = all.expenses || [];\
-    appState.debts    = all.debts    || [];\
-    appState.goals    = all.goals    || [];\
-    appState.ledger   = all.ledger   || [];\
-\
-    const totalIncome = appState.incomeNet + appState.incomeSpouse + appState.incomeOther;\
-    document.getElementById('dash-title').textContent = (obData.name ? obData.name + '\uc0\u30340 ' : '') + '\u36001 \u21209 \u20736 \u34920 \u26495 ';\
-    document.getElementById('dash-sub').textContent   = (obData.marital||'') + (obData.ages?' \'b7 '+obData.ages:'') + ' \'b7 \uc0\u26376 \u25910 \u20837  $' + totalIncome.toLocaleString();\
-\
-    document.getElementById('app').style.display = 'flex';\
-    document.getElementById('onboarding').style.display = 'none';\
-    initCharts();\
-    renderAll();\
-    initIncomeAdj();\
-    recalculate();\
-  \} else \{\
-    // First time \'97 show onboarding\
-    document.getElementById('onboarding').style.display = 'flex';\
-    document.getElementById('app').style.display = 'none';\
-    renderObSlide();\
-  \}\
-\}\
-\
-function showLoading(msg) \{\
-  document.getElementById('loading-screen').style.display = 'flex';\
-  document.getElementById('loading-msg').textContent = msg || '\uc0\u36617 \u20837 \u20013 \'85';\
-\}\
-function hideLoading() \{\
-  document.getElementById('loading-screen').style.display = 'none';\
-\}\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  \uc0\u26376 \u20221 \u36984 \u21934 \u21021 \u22987 \u21270 \
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-function initMonthSelect() \{\
-  const sel = document.getElementById('ledger-month');\
-  if (!sel) return;\
-  sel.innerHTML = '';\
-  const now = new Date();\
-  for (let i = 0; i < 12; i++) \{\
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);\
-    const label = d.getFullYear() + '\uc0\u24180  ' + (d.getMonth()+1) + '\u26376 ';\
-    const opt = document.createElement('option');\
-    opt.value = label; opt.textContent = label;\
-    sel.appendChild(opt);\
-  \}\
-\}\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  \uc0\u21407 \u26377  App \u37007 \u36655 \u65288 \u23436 \u25972 \u20445 \u30041 \u65289 \
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-const OB_TOTAL = 7;\
-let obStep = 0;\
-let obData = \{name:'',marital:'',children:[],ages:'',incomeNet:'',incomeSpouse:'',incomeOther:'',expenses:[],debts:[],goals:[],emergencyFund:''\};\
-\
-function obMakeStepDots() \{\
-  const c = document.getElementById('ob-step-dots'); c.innerHTML = '';\
-  for (let i = 0; i < OB_TOTAL; i++) \{\
-    const d = document.createElement('div');\
-    d.className = 'ob-step-dot' + (i < obStep ? ' done' : i === obStep ? ' active' : '');\
-    c.appendChild(d);\
-  \}\
-\}\
-\
-const SLIDES = [\
-  () => `<div class="ob-step-label">\uc0\u38283 \u22987 \u20351 \u29992 </div><div class="ob-q">\u27489 \u36814 \u20351 \u29992 \u29702 \u36001 \u21161 \u25163  \u9672 </div><div class="ob-hint">\u25105 \u20497 \u20808 \u33457  2 \u20998 \u37912 \u20102 \u35299 \u20320 \u30340 \u22522 \u26412 \u29376 \u27841 \u65292 <br>\u31995 \u32113 \u23559 \u26681 \u25818 \u20320 \u30340 \u24773 \u27841 \u37327 \u36523 \u25171 \u36896 \u36001 \u21209 \u35215 \u21123 \u12290 </div><div class="ob-input-wrap"><input class="ob-input" id="ob-name" placeholder="\u20320 \u24076 \u26395 \u24590 \u40636 \u31281 \u21628 \u20320 \u65311 " value="$\{obData.name\}"></div>`,\
-  () => `<div class="ob-step-label">\uc0\u23478 \u24237 \u29376 \u27841 </div><div class="ob-q">\u20320 \u30446 \u21069 \u30340 \u23478 \u24237 \u29376 \u27841 \u65311 </div><div class="ob-hint">\u36889 \u26371 \u24433 \u38911 \u25903 \u20986 \u20272 \u31639 \u33287 \u36001 \u21209 \u35215 \u21123 \u26041 \u21521 </div><div class="chip-group" id="marital-chips">$\{['\u21934 \u36523 ','\u24050 \u23130 \u65288 \u28961 \u23567 \u23401 \u65289 ','\u24050 \u23130 \u65288 \u26377 \u23567 \u23401 \u65289 ','\u21934 \u35242 '].map(v=>`<div class="chip$\{obData.marital===v?' selected':''\}" onclick="selectChip('marital',this,'$\{v\}')">$\{v\}</div>`).join('')\}</div><div id="children-section" style="$\{obData.marital==='\u24050 \u23130 \u65288 \u26377 \u23567 \u23401 \u65289 '||obData.marital==='\u21934 \u35242 '?'':'display:none'\}"><label class="ob-label-small">\u23401 \u23376 \u24190 \u20491 \u65311 \u24190 \u27506 \u65311 </label><div class="ob-input-wrap"><input class="ob-input" id="ob-children" placeholder="\u20363 \u65306 4\u20491 \u23401 \u23376 \u65292 6\u12289 4\u12289 2 \u27506 \u21644  3 \u20491 \u26376 \u22823 " value="$\{obData.ages\}"></div></div>`,\
-  () => `<div class="ob-step-label">\uc0\u25910 \u20837 \u29376 \u27841 </div><div class="ob-q">\u20320 \u30340 \u27599 \u26376 \u25910 \u20837 \u26159 \u22810 \u23569 \u65311 </div><div class="ob-hint">\u22635 \u20837 \u31237 \u24460 \u23526 \u38936 \u37329 \u38989 \u65292 \u19981 \u30906 \u23450 \u21487 \u20197 \u22635 \u22823 \u27010 \u20540 </div><div class="ob-grid"><div><label class="ob-label-small">\u26412 \u20154 \u26376 \u25910 \u20837 \u65288 \u31237 \u24460 \u65289 </label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-income" type="number" placeholder="80000" value="$\{obData.incomeNet\}"></div></div><div><label class="ob-label-small">\u37197 \u20598 \u26376 \u25910 \u20837 \u65288 \u31237 \u24460 \u65292 \u28961 \u21063 \u22635  0\u65289 </label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-spouse" type="number" placeholder="0" value="$\{obData.incomeSpouse\}"></div></div></div><div><label class="ob-label-small">\u20854 \u20182 \u25910 \u20837 \u65288 \u21103 \u26989 \u12289 \u31199 \u37329 \u31561 \u65289 </label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-other" type="number" placeholder="0" value="$\{obData.incomeOther\}"></div></div>`,\
-  () => `<div class="ob-step-label">\uc0\u22266 \u23450 \u25903 \u20986 </div><div class="ob-q">\u27599 \u26376 \u26377 \u21738 \u20123 \u22266 \u23450 \u25903 \u20986 \u65311 </div><div class="ob-hint">\u22635 \u20837 \u27599 \u26376 \u24517 \u23450 \u26371 \u30332 \u29983 \u30340 \u25903 \u20986 \u65288 \u25151 \u31199 \u12289 \u38651 \u35441 \u36027 \u31561 \u65289 </div><div style="display:grid;grid-template-columns:140px 1fr 130px 30px;gap:8px;padding-bottom:8px;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint)"><span>\u39006 \u21029 </span><span>\u38917 \u30446 \u21517 \u31281 </span><span>\u27599 \u26376 \u37329 \u38989 </span><span></span></div><div id="ob-exp-list"></div><button class="btn-addrow" onclick="obAddExp()">\u65291  \u26032 \u22686 \u38917 \u30446 </button>`,\
-  () => `<div class="ob-step-label">\uc0\u20661 \u21209 \u29376 \u27841 </div><div class="ob-q">\u30446 \u21069 \u26377 \u21738 \u20123 \u20661 \u21209 \u65311 </div><div class="ob-hint">\u33509 \u28961 \u20661 \u21209 \u21487 \u30452 \u25509 \u36339 \u36942 </div><div style="display:grid;grid-template-columns:1fr 130px 80px 110px 30px;gap:8px;padding-bottom:8px;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint)"><span>\u21517 \u31281 </span><span>\u32317 \u37329 \u38989 </span><span>\u24180 \u21033 \u29575 %</span><span>\u26368 \u20302 \u36996 \u27454 </span><span></span></div><div id="ob-debt-list"></div><button class="btn-addrow" onclick="obAddDebt()">\u65291  \u26032 \u22686 \u20661 \u21209 </button><div style="margin-top:12px"><label class="ob-label-small">\u30446 \u21069 \u32202 \u24613 \u38928 \u20633 \u37329 \u37329 \u38989  $</label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-emergency" type="number" placeholder="0" value="$\{obData.emergencyFund\}"></div></div>`,\
-  () => `<div class="ob-step-label">\uc0\u36001 \u21209 \u30446 \u27161 </div><div class="ob-q">\u20320 \u26368 \u24819 \u36948 \u25104 \u21738 \u20123 \u36001 \u21209 \u30446 \u27161 \u65311 </div><div class="ob-hint">\u21487 \u20197 \u22810 \u36984 \u65292 \u20043 \u24460 \u36996 \u21487 \u20197 \u26032 \u22686 \u25110 \u35519 \u25972 </div><div class="chip-group" id="goal-chips">$\{[['
-\f1\b0 \uc0\u55356 \u57312 
-\f0\b  \uc0\u36023 \u25151 ','\u36023 \u25151 '],['
-\f1\b0 \uc0\u55357 \u56983 
-\f0\b  \uc0\u36023 \u36554 ','\u36023 \u36554 '],['
-\f1\b0 \uc0\u55356 \u57235 
-\f0\b  \uc0\u23376 \u22899 \u25945 \u32946 \u22522 \u37329 ','\u25945 \u32946 \u22522 \u37329 '],['
-\f1\b0 \uc0\u55357 \u56496 
-\f0\b  \uc0\u30334 \u33836 \u20786 \u33988 ','\u30334 \u33836 \u20786 \u33988 '],['
-\f1\b0 \uc0\u55356 \u57318 
-\f0\b  \uc0\u32202 \u24613 \u38928 \u20633 \u37329 ','\u32202 \u24613 \u38928 \u20633 \u37329 '],['
-\f1\b0 \uc0\u55357 \u56520 
-\f0\b  \uc0\u36864 \u20241 \u37329 ','\u36864 \u20241 \u37329 '],['
-\f1\b0 \uc0\u9992 \u65039 
-\f0\b  \uc0\u26053 \u36938 \u22522 \u37329 ','\u26053 \u36938 '],['
-\f1\b0 \uc0\u55356 \u57263 
-\f0\b  \uc0\u20854 \u20182 ','\u20854 \u20182 ']].map(([label,val])=>`<div class="chip multi-select$\{obData.goals.includes(val)?' selected':''\}" onclick="toggleGoal(this,'$\{val\}')">$\{label\}</div>`).join('')\}`,\
-  () => \{\
-    const totalIncome=(+obData.incomeNet||0)+(+obData.incomeSpouse||0)+(+obData.incomeOther||0);\
-    const totalExp=obData.expenses.reduce((s,e)=>s+(+e.amount||0),0);\
-    const totalDebt=obData.debts.reduce((s,d)=>s+(+d.amount||0),0);\
-    return `<div id="ob-summary"><div class="ob-step-label">\uc0\u30906 \u35469 \u36039 \u26009 </div><div class="ob-q">\u30906 \u35469 \u20320 \u30340 \u36001 \u21209 \u29376 \u27841 </div><div class="ob-hint">\u30906 \u35469 \u28961 \u35492 \u24460 \u21363 \u21487 \u36914 \u20837 \u29702 \u36001 \u35215 \u21123 </div><div class="sum-section"><div class="sum-title">\u22522 \u26412 \u36039 \u35338 </div><div class="sum-row"><span class="sum-key">\u31281 \u21628 </span><span class="sum-val">$\{obData.name||'\u26410 \u22635 '\}</span></div><div class="sum-row"><span class="sum-key">\u23478 \u24237 \u29376 \u27841 </span><span class="sum-val">$\{obData.marital||'\u26410 \u22635 '\}$\{obData.ages?' \'b7 '+obData.ages:''\}</span></div></div><div class="sum-section"><div class="sum-title">\u26376 \u25910 \u20837 </div>$\{[['\u26412 \u20154 ',obData.incomeNet],[+obData.incomeSpouse>0?'\u37197 \u20598 ':null,obData.incomeSpouse],[+obData.incomeOther>0?'\u20854 \u20182 ':null,obData.incomeOther]].filter(r=>r[0]).map(r=>`<div class="sum-row"><span class="sum-key">$\{r[0]\}</span><span class="sum-val gold">$$\{Number(r[1]||0).toLocaleString()\}</span></div>`).join('')\}<div class="sum-row"><span class="sum-key">\u21512 \u35336 </span><span class="sum-val gold" style="font-size:1rem">$$\{totalIncome.toLocaleString()\}</span></div></div><div class="sum-section"><div class="sum-title">\u22266 \u23450 \u25903 \u20986 \u65288 $\{obData.expenses.length\} \u38917 \u65289 </div>$\{obData.expenses.map(e=>`<div class="sum-row"><span class="sum-key">$\{e.cat\} \'b7 $\{e.name\}</span><span class="sum-val rose">$$\{Number(e.amount||0).toLocaleString()\}</span></div>`).join('')\}<div class="sum-row"><span class="sum-key">\u21512 \u35336 </span><span class="sum-val rose" style="font-size:1rem">$$\{totalExp.toLocaleString()\}</span></div></div>$\{totalDebt>0?`<div class="sum-section"><div class="sum-title">\u20661 \u21209 </div>$\{obData.debts.map(d=>`<div class="sum-row"><span class="sum-key">$\{d.name\} $\{d.rate\}%</span><span class="sum-val rose">$$\{Number(d.amount||0).toLocaleString()\}</span></div>`).join('')\}</div>`:''\}<div class="sum-section"><div class="sum-title">\u36001 \u21209 \u30446 \u27161 </div><div class="sum-row"><span class="sum-key">\u30446 \u27161 </span><span class="sum-val teal">$\{obData.goals.length>0?obData.goals.join('\u12289 '):'\u26410 \u36984 '\}</span></div><div class="sum-row"><span class="sum-key">\u26376 \u21487 \u37197 \u32622 </span><span class="sum-val teal" style="font-size:1rem">$$\{(totalIncome-totalExp).toLocaleString()\}</span></div></div></div>`;\
-  \}\
-];\
-\
-function renderObSlide() \{\
-  obMakeStepDots();\
-  document.getElementById('ob-body').innerHTML = `<div class="ob-slide">$\{SLIDES[obStep]()\}</div>`;\
-  document.getElementById('ob-progress-text').textContent = `$\{obStep+1\} / $\{OB_TOTAL\}`;\
-  document.getElementById('btn-back').style.display = obStep > 0 ? 'block' : 'none';\
-  const navRight = document.getElementById('ob-nav-right');\
-  if (obStep === OB_TOTAL - 1) \{\
-    navRight.innerHTML = `<button class="btn-finish" onclick="finishOnboarding()">\uc0\u38283 \u22987 \u29702 \u36001 \u35215 \u21123  \u9672 </button>`;\
-  \} else \{\
-    navRight.innerHTML = `<button class="btn-next" onclick="obNext()">\uc0\u32380 \u32396  \u8594 </button>`;\
-  \}\
-  if (obStep === 3) \{ obData.expenses.forEach(e=>obAddExpFromData(e)); if(!obData.expenses.length) obAddExp(); \}\
-  if (obStep === 4) \{ obData.debts.forEach(d=>obAddDebtFromData(d)); \}\
-\}\
-\
-function selectChip(key, el, val) \{\
-  document.querySelectorAll(`#$\{key\}-chips .chip`).forEach(c=>c.classList.remove('selected'));\
-  el.classList.add('selected'); obData[key] = val;\
-  if (key==='marital') \{ const show=val==='\uc0\u24050 \u23130 \u65288 \u26377 \u23567 \u23401 \u65289 '||val==='\u21934 \u35242 '; document.getElementById('children-section').style.display=show?'':'none'; \}\
-\}\
-function toggleGoal(el, val) \{\
-  el.classList.toggle('selected');\
-  if (el.classList.contains('selected')) \{ if(!obData.goals.includes(val)) obData.goals.push(val); \}\
-  else \{ obData.goals = obData.goals.filter(g=>g!==val); \}\
-\}\
-\
-const EXP_CATS = ['\uc0\u22857 \u29563 /\u24904 \u21892 ','\u23621 \u20303 ','\u29983 \u27963 ','\u36890 \u35338 ','\u20132 \u36890 ','\u25945 \u32946 ','\u37291 \u30274 ','\u20445 \u38570 ','\u23541 \u29289 ','\u20786 \u33988 ','\u25237 \u36039 ','\u20854 \u20182 '];\
-function obAddExp() \{ const id=Date.now(); obData.expenses.push(\{id,cat:'\uc0\u20854 \u20182 ',name:'',amount:''\}); obAddExpFromData(obData.expenses[obData.expenses.length-1]); \}\
-function obAddExpFromData(e) \{\
-  const c=document.getElementById('ob-exp-list'); if(!c) return;\
-  const row=document.createElement('div'); row.className='exp-row'; row.id='ob-exp-'+e.id;\
-  row.innerHTML=`<select onchange="obUpdateExp($\{e.id\},'cat',this.value)" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.8rem;outline:none;font-family:'Noto Sans TC',sans-serif;width:100%">$\{EXP_CATS.map(c=>`<option$\{c===e.cat?' selected':''\}>$\{c\}</option>`).join('')\}</select><input type="text" value="$\{e.name\}" placeholder="\uc0\u38917 \u30446 \u21517 \u31281 " onchange="obUpdateExp($\{e.id\},'name',this.value)"><input type="number" value="$\{e.amount\}" placeholder="\u37329 \u38989 " oninput="obUpdateExp($\{e.id\},'amount',+this.value)"><button class="btn-del" onclick="obRemoveExp($\{e.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button>`;\
-  c.appendChild(row);\
-\}\
-function obUpdateExp(id,k,v)\{const e=obData.expenses.find(e=>e.id===id);if(e)e[k]=v;\}\
-function obRemoveExp(id)\{obData.expenses=obData.expenses.filter(e=>e.id!==id);document.getElementById('ob-exp-'+id)?.remove();\}\
-function obAddDebt()\{const id=Date.now();obData.debts.push(\{id,name:'',amount:'',rate:'',minPay:''\});obAddDebtFromData(obData.debts[obData.debts.length-1]);\}\
-function obAddDebtFromData(d)\{\
-  const c=document.getElementById('ob-debt-list');if(!c)return;\
-  const row=document.createElement('div');row.className='debt-row';row.id='ob-debt-'+d.id;\
-  row.innerHTML=`<input type="text" value="$\{d.name\}" placeholder="\uc0\u20363 \u65306 \u20449 \u29992 \u21345 \u20661 " onchange="obUpdateDebt($\{d.id\},'name',this.value)"><input type="number" value="$\{d.amount\}" placeholder="46000" oninput="obUpdateDebt($\{d.id\},'amount',+this.value)"><input type="number" value="$\{d.rate\}" step="0.1" placeholder="10" oninput="obUpdateDebt($\{d.id\},'rate',+this.value)"><input type="number" value="$\{d.minPay\}" placeholder="2300" oninput="obUpdateDebt($\{d.id\},'minPay',+this.value)"><button class="btn-del" onclick="obRemoveDebt($\{d.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button>`;\
-  c.appendChild(row);\
-\}\
-function obUpdateDebt(id,k,v)\{const d=obData.debts.find(d=>d.id===id);if(d)d[k]=v;\}\
-function obRemoveDebt(id)\{obData.debts=obData.debts.filter(d=>d.id!==id);document.getElementById('ob-debt-'+id)?.remove();\}\
-\
-function obSaveCurrentStep()\{\
-  if(obStep===0)obData.name=document.getElementById('ob-name')?.value||'';\
-  if(obStep===1)obData.ages=document.getElementById('ob-children')?.value||'';\
-  if(obStep===2)\{obData.incomeNet=document.getElementById('ob-income')?.value||'0';obData.incomeSpouse=document.getElementById('ob-spouse')?.value||'0';obData.incomeOther=document.getElementById('ob-other')?.value||'0';\}\
-  if(obStep===4)obData.emergencyFund=document.getElementById('ob-emergency')?.value||'0';\
-\}\
-function obNext()\{obSaveCurrentStep();obStep=Math.min(obStep+1,OB_TOTAL-1);renderObSlide();\}\
-function obBack()\{obSaveCurrentStep();obStep=Math.max(obStep-1,0);renderObSlide();\}\
-\
-async function finishOnboarding()\{\
-  const goalMap=\{'\uc0\u32202 \u24613 \u38928 \u20633 \u37329 ':\{icon:'
-\f1\b0 \uc0\u55356 \u57318 
-\f0\b ',target:Math.round((+obData.incomeNet+(+obData.incomeSpouse||0))*6),monthly:Math.round((+obData.incomeNet)*0.05)\},'\uc0\u36023 \u25151 ':\{icon:'
-\f1\b0 \uc0\u55356 \u57312 
-\f0\b ',target:2000000,monthly:5000\},'\uc0\u36023 \u36554 ':\{icon:'
-\f1\b0 \uc0\u55357 \u56983 
-\f0\b ',target:500000,monthly:2000\},'\uc0\u25945 \u32946 \u22522 \u37329 ':\{icon:'
-\f1\b0 \uc0\u55356 \u57235 
-\f0\b ',target:1000000,monthly:2000\},'\uc0\u30334 \u33836 \u20786 \u33988 ':\{icon:'
-\f1\b0 \uc0\u55357 \u56496 
-\f0\b ',target:1000000,monthly:10000\},'\uc0\u36864 \u20241 \u37329 ':\{icon:'
-\f1\b0 \uc0\u55357 \u56520 
-\f0\b ',target:10000000,monthly:5000\},'\uc0\u26053 \u36938 ':\{icon:'
-\f1\b0 \uc0\u9992 \u65039 
-\f0\b ',target:100000,monthly:3000\},'\uc0\u20854 \u20182 ':\{icon:'
-\f1\b0 \uc0\u55356 \u57263 
-\f0\b ',target:500000,monthly:3000\}\};\
-  appState.goals=obData.goals.map((g,i)=>(\{id:Date.now()+i,icon:goalMap[g]?.icon||'
-\f1\b0 \uc0\u55356 \u57263 
-\f0\b ',name:g,target:goalMap[g]?.target||500000,saved:g==='\uc0\u32202 \u24613 \u38928 \u20633 \u37329 '?(+obData.emergencyFund||0):0,monthly:goalMap[g]?.monthly||3000\}));\
-  appState.expenses=obData.expenses.map(e=>(\{...e,id:e.id||Date.now()\}));\
-  appState.debts=obData.debts.map(d=>(\{...d,id:d.id||Date.now()\}));\
-  appState.incomeNet=+obData.incomeNet||0;appState.incomeSpouse=+obData.incomeSpouse||0;appState.incomeOther=+obData.incomeOther||0;\
-  const email=currentUser?.email||'';const name=currentUser?.user_metadata?.full_name||obData.name||email.split('@')[0];\
-  document.getElementById('sidebar-avatar').textContent=(name||'?').charAt(0).toUpperCase();\
-  document.getElementById('sidebar-name').textContent=name;\
-  document.getElementById('sidebar-email').textContent=email;\
-  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;\
-  document.getElementById('dash-title').textContent=(obData.name?obData.name+'\uc0\u30340 ':'')+'\u36001 \u21209 \u20736 \u34920 \u26495 ';\
-  document.getElementById('dash-sub').textContent=(obData.marital||'')+(obData.ages?' \'b7 '+obData.ages:'')+' \'b7 \uc0\u26376 \u25910 \u20837  $'+totalIncome.toLocaleString();\
-  document.getElementById('onboarding').style.display='none';\
-  document.getElementById('app').style.display='flex';\
-  initCharts();renderAll();initIncomeAdj();recalculate();\
-  await doSave(); // save to Supabase immediately\
-\}\
-\
-async function resetOnboarding()\{\
-  if(!confirm('\uc0\u30906 \u23450 \u35201 \u37325 \u26032 \u35373 \u23450 \u21966 \u65311 \u36889 \u26371 \u28165 \u38500 \u20320 \u30340 \u25152 \u26377 \u36001 \u21209 \u36039 \u26009 \u65292 \u28961 \u27861 \u24489 \u21407 \u12290 '))return;\
-  // Clear Supabase data\
-  const keys=['profile','income','expenses','debts','goals','ledger'];\
-  await Promise.all(keys.map(k=>sb.from('finance_data').delete().eq('key',k)));\
-  obStep=0;obData=\{name:'',marital:'',children:[],ages:'',incomeNet:'',incomeSpouse:'',incomeOther:'',expenses:[],debts:[],goals:[],emergencyFund:''\};\
-  appState=\{incomeNet:0,incomeSpouse:0,incomeOther:0,expenses:[],debts:[],goals:[],ledger:[]\};\
-  document.getElementById('app').style.display='none';\
-  document.getElementById('onboarding').style.display='flex';\
-  renderObSlide();\
-\}\
-\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-//  App State & all original logic\
-// \uc0\u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \u9552 \
-let appState=\{incomeNet:0,incomeSpouse:0,incomeOther:0,expenses:[],debts:[],goals:[],ledger:[]\};\
-let chartExp,chartAlloc;\
-let baseIncome=\{net:0,spouse:0,other:0\};\
-let expMode='fixed';\
-\
-function showPage(p)\{\
-  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));\
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));\
-  document.getElementById('page-'+p).classList.add('active');\
-  const navItems=document.querySelectorAll('.nav-item');\
-  if(p==='dashboard')navItems[0].classList.add('active');\
-  else if(p==='expenses')\{navItems[1].classList.add('active');initIncomeAdj();renderExpenses();\}\
-  else if(p==='debt')navItems[2].classList.add('active');\
-  else if(p==='ledger')navItems[3].classList.add('active');\
-  else if(p==='plan')\{navItems[4].classList.add('active');renderPlan();\}\
-  else if(p==='goals')\{navItems[5].classList.add('active');renderGoals();\}\
-  else if(p==='invest')\{navItems[6].classList.add('active');renderInvest();\}\
-\}\
-\
-function renderAll()\{renderExpenses();renderDebts();renderGoals();renderLedger();initMonthSelect();\}\
-\
-function initIncomeAdj()\{\
-  document.getElementById('adj-income').value=appState.incomeNet||'';\
-  document.getElementById('adj-spouse').value=appState.incomeSpouse||'';\
-  document.getElementById('adj-other').value=appState.incomeOther||'';\
-  baseIncome=\{net:appState.incomeNet,spouse:appState.incomeSpouse,other:appState.incomeOther\};\
-  updateAdjTotal();\
-\}\
-function adjustIncome()\{\
-  appState.incomeNet=+document.getElementById('adj-income').value||0;\
-  appState.incomeSpouse=+document.getElementById('adj-spouse').value||0;\
-  appState.incomeOther=+document.getElementById('adj-other').value||0;\
-  baseIncome=\{net:appState.incomeNet,spouse:appState.incomeSpouse,other:appState.incomeOther\};\
-  updateAdjTotal();recalculate();renderExpenses();\
-\}\
-function updateAdjTotal()\{const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;document.getElementById('adj-total').textContent='$'+t.toLocaleString();\}\
-function simIncome(factor)\{\
-  const sn=Math.round(baseIncome.net*factor),ss=Math.round(baseIncome.spouse*factor),so=Math.round(baseIncome.other*factor);\
-  document.getElementById('adj-income').value=sn||'';document.getElementById('adj-spouse').value=ss||'';document.getElementById('adj-other').value=so||'';\
-  appState.incomeNet=sn;appState.incomeSpouse=ss;appState.incomeOther=so;\
-  updateAdjTotal();recalculate();renderExpenses();\
-\}\
-function setExpMode(mode)\{expMode=mode;document.getElementById('mode-fixed-btn').classList.toggle('active',mode==='fixed');document.getElementById('mode-ratio-btn').classList.toggle('active',mode==='ratio');renderExpenses();\}\
-function getExpAmount(e)\{const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;if(e.useRatio&&e.ratio>0)return Math.round(t*e.ratio/100);return +e.amount||0;\}\
-\
-function renderExpenses()\{\
-  const c=document.getElementById('exp-list'),header=document.getElementById('exp-list-header');\
-  if(!c)return;c.innerHTML='';\
-  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;\
-  if(expMode==='fixed')\{header.style.gridTemplateColumns='130px 1fr 140px 30px';header.innerHTML='<span>\uc0\u39006 \u21029 </span><span>\u38917 \u30446 \u21517 \u31281 </span><span>\u27599 \u26376 \u37329 \u38989 </span><span></span>';\}\
-  else\{header.style.gridTemplateColumns='130px 1fr 60px 80px 110px 30px';header.innerHTML='<span>\uc0\u39006 \u21029 </span><span>\u38917 \u30446 \u21517 \u31281 </span><span>\u27169 \u24335 </span><span>\u27604 \u20363 %</span><span>\u35336 \u31639 \u37329 \u38989 </span><span></span>';\}\
-  appState.expenses.forEach(e=>\{\
-    const row=document.createElement('div');row.id='exp-'+e.id;\
-    const computedAmt=getExpAmount(e);\
-    const sel=EXP_CATS.map(c=>`<option$\{c===e.cat?' selected':''\}>$\{c\}</option>`).join('');\
-    const is='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s';\
-    const ss='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.8rem;outline:none;font-family:"Noto Sans TC",sans-serif;width:100%';\
-    if(expMode==='fixed')\{\
-      row.style.cssText='display:grid;grid-template-columns:130px 1fr 140px 30px;gap:8px;align-items:center;margin-bottom:8px';\
-      row.innerHTML=`<select onchange="updateExp($\{e.id\},'cat',this.value)" style="$\{ss\}">$\{sel\}</select><input type="text" value="$\{e.name||''\}" placeholder="\uc0\u21517 \u31281 " onchange="updateExp($\{e.id\},'name',this.value)" style="$\{is\}"><input type="number" value="$\{e.amount||''\}" placeholder="\u37329 \u38989 " oninput="updateExp($\{e.id\},'amount',+this.value)" style="$\{is\}"><button class="btn-del" onclick="removeExp($\{e.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button>`;\
-    \} else \{\
-      row.style.cssText='display:grid;grid-template-columns:130px 1fr 60px 80px 110px 30px;gap:8px;align-items:center;margin-bottom:8px';\
-      const useR=e.useRatio?true:false;\
-      row.innerHTML=`<select onchange="updateExp($\{e.id\},'cat',this.value)" style="$\{ss\}">$\{sel\}</select><input type="text" value="$\{e.name||''\}" placeholder="\uc0\u21517 \u31281 " onchange="updateExp($\{e.id\},'name',this.value)" style="$\{is\}"><button onclick="toggleRatio($\{e.id\})" style="padding:5px 6px;border-radius:6px;border:1px solid $\{useR?'var(--sky)':'var(--line2)'\};background:$\{useR?'rgba(79,157,232,0.15)':'transparent'\};color:$\{useR?'var(--sky)':'var(--muted)'\};font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">$\{useR?'\u27604 \u20363 ':'\u22266 \u23450 '\}</button>$\{useR?`<div style="position:relative"><input type="number" value="$\{e.ratio||''\}" placeholder="10" step="0.1" min="0" max="100" oninput="updateExp($\{e.id\},'ratio',+this.value)" style="$\{is\};padding-right:22px"><span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--sky);font-size:0.75rem;pointer-events:none">%</span></div>`:`<input type="number" value="$\{e.amount||''\}" placeholder="\u37329 \u38989 " oninput="updateExp($\{e.id\},'amount',+this.value)" style="$\{is\}">`\}<div class="computed-amt" id="comp-$\{e.id\}">$$\{computedAmt.toLocaleString()\}$\{useR&&totalIncome>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">$\{e.ratio\}% of $$\{totalIncome.toLocaleString()\}</div>`:''\}</div><button class="btn-del" onclick="removeExp($\{e.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button>`;\
-    \}\
-    c.appendChild(row);\
-  \});\
-  recalculate();\
-\}\
-function toggleRatio(id)\{const e=appState.expenses.find(e=>e.id===id);if(!e)return;e.useRatio=!e.useRatio;if(e.useRatio&&!e.ratio)\{const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;e.ratio=t>0?+((e.amount/t*100).toFixed(1)):10;\}renderExpenses();\}\
-function addExpRow()\{appState.expenses.push(\{id:Date.now(),cat:'\uc0\u20854 \u20182 ',name:'',amount:0,useRatio:false,ratio:0\});renderExpenses();\}\
-function removeExp(id)\{appState.expenses=appState.expenses.filter(e=>e.id!==id);renderExpenses();\}\
-function updateExp(id,k,v)\{const e=appState.expenses.find(e=>e.id===id);if(e)\{e[k]=v;if(k==='ratio'||k==='amount')\{const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;const a=getExpAmount(e);const comp=document.getElementById('comp-'+id);if(comp)comp.innerHTML='$'+a.toLocaleString()+(e.useRatio&&t>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">$\{e.ratio\}% of $$\{t.toLocaleString()\}</div>`:'');\}recalculate();scheduleSave();\}\}\
-\
-function renderDebts()\{\
-  const c=document.getElementById('debt-list');c.innerHTML='';\
-  if(!appState.debts.length)\{c.innerHTML='<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">\uc0\u30446 \u21069 \u28961 \u20661 \u21209 \u35352 \u37636  
-\f1\b0 \uc0\u55356 \u57225 
-\f0\b </div>';document.getElementById('debt-strategy').style.display='none';return;\}\
-  appState.debts.forEach(d=>\{const row=document.createElement('div');row.className='debt-row';row.id='debt-'+d.id;row.innerHTML=`<input type="text" value="$\{d.name||''\}" placeholder="\uc0\u20363 \u65306 \u20449 \u29992 \u21345 \u20661 " onchange="updateDebt($\{d.id\},'name',this.value)"><input type="number" value="$\{d.amount||''\}" placeholder="46000" oninput="updateDebt($\{d.id\},'amount',+this.value)"><input type="number" value="$\{d.rate||''\}" step="0.1" placeholder="10" oninput="updateDebt($\{d.id\},'rate',+this.value)"><input type="number" value="$\{d.minPay||''\}" placeholder="2300" oninput="updateDebt($\{d.id\},'minPay',+this.value)"><button class="btn-del" onclick="removeDebt($\{d.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button>`;c.appendChild(row);\});\
-  document.getElementById('debt-strategy').style.display='block';renderDebtStrategy();\
-\}\
-function addDebtRow()\{appState.debts.push(\{id:Date.now(),name:'',amount:0,rate:5,minPay:0\});renderDebts();\}\
-function removeDebt(id)\{appState.debts=appState.debts.filter(d=>d.id!==id);renderDebts();scheduleSave();\}\
-function updateDebt(id,k,v)\{const d=appState.debts.find(d=>d.id===id);if(d)\{d[k]=v;renderDebtStrategy();scheduleSave();\}\}\
-function renderDebtStrategy()\{\
-  const debts=[...appState.debts].sort((a,b)=>b.rate-a.rate);\
-  let h=`<div class="alert info"><span class="alert-icon">
-\f1\b0 \uc0\u55357 \u56481 
-\f0\b </span><div><strong>\uc0\u38634 \u23849 \u27861 \u65288 Avalanche\u65289 \u65306 </strong>\u20778 \u20808 \u28165 \u20767 \u21033 \u29575 \u26368 \u39640 \u30340 \u20661 \u21209 \u65292 \u31680 \u30465 \u26368 \u22810 \u32317 \u21033 \u24687 \u12290 </div></div>`;\
-  debts.forEach((d,i)=>\{const mi=d.amount>0&&d.rate>0?(d.amount*d.rate/100/12).toFixed(0):0;const months=d.minPay>0&&d.minPay>d.amount*d.rate/100/12?Math.ceil(d.amount/(d.minPay-d.amount*d.rate/100/12)):'\'97';h+=`<div class="plan-item"><div class="plan-num">$\{i+1\}</div><div class="plan-body"><div class="plan-t">$\{d.name||'\uc0\u26410 \u21629 \u21517 '\} <span class="badge badge-rose">$\{d.rate\}% \u24180 \u21033 \u29575 </span></div><div class="plan-d">\u27599 \u26376 \u21033 \u24687 \u32004  $$\{Number(mi).toLocaleString()\} \'b7 \u26368 \u20302 \u36996 \u27454  $$\{(d.minPay||0).toLocaleString()\}</div></div><div class="plan-amt">$$\{(d.amount||0).toLocaleString()\}<small>\u32004  $\{months\} \u26376 \u28165 \u20767 </small></div></div>`;\});\
-  document.getElementById('debt-strategy-body').innerHTML=h;\
-\}\
-\
-function renderLedger()\{\
-  const c=document.getElementById('ledger-list');c.innerHTML='';\
-  if(!appState.ledger.length)\{c.innerHTML='<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">\uc0\u23578 \u28961 \u35352 \u37636 </div>';\}\
-  appState.ledger.forEach(e=>\{const row=document.createElement('div');row.className='ledger-row';row.id='led-'+e.id;row.innerHTML=`<input type="date" value="$\{e.date||''\}" onchange="updateLed($\{e.id\},'date',this.value)"><input type="text" value="$\{e.name||''\}" placeholder="\uc0\u38917 \u30446 " onchange="updateLed($\{e.id\},'name',this.value)"><input type="number" value="$\{e.amount||''\}" placeholder="\u37329 \u38989 " oninput="updateLed($\{e.id\},'amount',+this.value)"><select onchange="updateLed($\{e.id\},'type',this.value)"><option$\{e.type==='expense'?' selected':''\} value="expense">\u25903 \u20986 </option><option$\{e.type==='income'?' selected':''\} value="income">\u25910 \u20837 </option></select><button class="btn-del" onclick="removeLed($\{e.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button>`;c.appendChild(row);\});\
-  updateLedgerTotals();\
-\}\
-function addLedgerRow()\{const today=new Date().toISOString().split('T')[0];appState.ledger.push(\{id:Date.now(),date:today,name:'',amount:0,type:'expense'\});renderLedger();\}\
-function removeLed(id)\{appState.ledger=appState.ledger.filter(e=>e.id!==id);renderLedger();scheduleSave();\}\
-function updateLed(id,k,v)\{const e=appState.ledger.find(e=>e.id===id);if(e)\{e[k]=v;updateLedgerTotals();scheduleSave();\}\}\
-function updateLedgerTotals()\{\
-  const ti=appState.ledger.filter(e=>e.type==='income').reduce((s,e)=>s+(+e.amount||0),0);\
-  const to=appState.ledger.filter(e=>e.type==='expense').reduce((s,e)=>s+(+e.amount||0),0);\
-  document.getElementById('l-total-in').textContent='$'+ti.toLocaleString();\
-  document.getElementById('l-total-out').textContent='$'+to.toLocaleString();\
-  const net=ti-to;const el=document.getElementById('l-net');el.textContent='$'+net.toLocaleString();el.style.color=net>=0?'var(--teal)':'var(--rose)';\
-\}\
-\
-function renderGoals()\{\
-  const c=document.getElementById('goals-grid');c.innerHTML='';\
-  appState.goals.forEach(g=>\{const pct=Math.min(100,g.target>0?Math.round(g.saved/g.target*100):0);const col=pct>=75?'teal':pct>=40?'gold':'sky';const months=g.monthly>0?Math.ceil((g.target-g.saved)/g.monthly):'\uc0\u8734 ';const card=document.createElement('div');card.className='goal-card';card.innerHTML=`<div class="goal-head"><span class="goal-ico">$\{g.icon\}</span><div style="flex:1"><div class="goal-ttl">$\{g.name\}</div><div class="goal-sub">\u30446 \u27161  $$\{g.target.toLocaleString()\}</div></div><button class="btn-del" onclick="removeGoal($\{g.id\})">
-\f2\b0 \uc0\u10005 
-\f0\b </button></div><div class="prog"><div class="prog-head"><span class="prog-name" style="font-size:0.78rem">$$\{g.saved.toLocaleString()\} / $$\{g.target.toLocaleString()\}</span><span class="prog-info">$\{pct\}%</span></div><div class="prog-track"><div class="prog-fill $\{col\}" style="width:$\{pct\}%"></div></div></div><div style="font-size:0.75rem;color:var(--faint);margin-bottom:10px">\uc0\u27599 \u26376  $$\{g.monthly.toLocaleString()\} \u8594  \u38928 \u35336  $\{months\} \u20491 \u26376 </div><div style="display:flex;gap:8px"><input type="number" placeholder="\u26356 \u26032 \u24050 \u23384 \u37329 \u38989 " class="field-input" style="font-size:0.78rem;padding:6px 10px" onchange="updateGoalSaved($\{g.id\},+this.value)"><button class="btn-s" style="padding:6px 12px;font-size:0.75rem;white-space:nowrap" onclick="updateGoalSaved($\{g.id\},(appState.goals.find(g=>g.id===$\{g.id\})?.saved||0)+$\{g.monthly\})">\u65291 \u26376 \u23384 </button></div>`;c.appendChild(card);\});\
-  updateDashGoals();\
-\}\
-function addGoal()\{const name=document.getElementById('g-name').value;const target=+document.getElementById('g-target').value;if(!name||!target)return;appState.goals.push(\{id:Date.now(),icon:document.getElementById('g-icon').value,name,target,saved:+document.getElementById('g-saved').value||0,monthly:+document.getElementById('g-monthly').value||0\});['g-name','g-target','g-saved','g-monthly'].forEach(id=>document.getElementById(id).value='');renderGoals();scheduleSave();\}\
-function removeGoal(id)\{appState.goals=appState.goals.filter(g=>g.id!==id);renderGoals();scheduleSave();\}\
-function updateGoalSaved(id,val)\{const g=appState.goals.find(g=>g.id===id);if(g)\{g.saved=Math.max(0,Math.min(g.target,val));renderGoals();scheduleSave();\}\}\
-\
-function recalculate()\{\
-  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;\
-  const totalExp=appState.expenses.reduce((s,e)=>s+getExpAmount(e),0);\
-  const balance=totalIncome-totalExp;\
-  const totalDebt=appState.debts.reduce((s,d)=>s+(+d.amount||0),0);\
-  const ratio=totalIncome>0?totalExp/totalIncome:0;\
-  const ratioSum=appState.expenses.filter(e=>e.useRatio).reduce((s,e)=>s+getExpAmount(e),0);\
-  document.getElementById('s-income').textContent='$'+totalIncome.toLocaleString();\
-  document.getElementById('s-expense').textContent='$'+totalExp.toLocaleString();\
-  document.getElementById('s-balance').textContent='$'+balance.toLocaleString();\
-  document.getElementById('s-balance').className='stat-v '+(balance>=0?'teal':'rose');\
-  let score=60;if(ratio<0.5)score+=18;else if(ratio<0.65)score+=10;else if(ratio>0.8)score-=15;if(totalDebt===0)score+=15;else if(totalDebt<50000)score+=5;else if(totalDebt>200000)score-=15;const ef=appState.goals.find(g=>g.name.includes('\uc0\u32202 \u24613 '));if(ef&&ef.saved>=ef.target*0.5)score+=10;else if(ef&&ef.saved>0)score+=5;score=Math.max(10,Math.min(100,score));\
-  const scoreEl=document.getElementById('s-score');scoreEl.textContent=score;scoreEl.className='stat-v '+(score>=75?'teal':score>=55?'sky':'rose');\
-  if(document.getElementById('exp-total-v'))document.getElementById('exp-total-v').textContent='$'+totalExp.toLocaleString();\
-  if(document.getElementById('exp-ratio-sum-v'))document.getElementById('exp-ratio-sum-v').textContent='$'+ratioSum.toLocaleString();\
-  if(document.getElementById('adj-total'))document.getElementById('adj-total').textContent='$'+totalIncome.toLocaleString();\
-  if(document.getElementById('exp-ratio-v'))\{const el=document.getElementById('exp-ratio-v');el.textContent=(ratio*100).toFixed(1)+'%';el.className='stat-v '+(ratio<0.65?'teal':ratio<0.8?'gold':'rose');\}\
-  if(document.getElementById('exp-remain-v'))document.getElementById('exp-remain-v').textContent='$'+balance.toLocaleString();\
-  renderBreakdownBar(totalIncome,totalExp);updateCharts();updateDashGoals();\
-  scheduleSave();\
-\}\
-\
-const BAR_COLORS=['#d4a843','#3ecfb2','#4f9de8','#e05b6a','#a06be0','#e0a043','#5ce0c9','#c84a8e','#82c858'];\
-function renderBreakdownBar(totalIncome,totalExp)\{\
-  const bar=document.getElementById('exp-breakdown-bar'),legend=document.getElementById('exp-breakdown-legend');\
-  if(!bar||!legend||totalIncome===0)return;\
-  const catMap=\{\};appState.expenses.forEach(e=>\{const amt=getExpAmount(e);catMap[e.cat]=(catMap[e.cat]||0)+amt;\});\
-  const remaining=Math.max(0,totalIncome-totalExp);if(remaining>0)catMap['\uc0\u21487 \u25903 \u37197 ']=remaining;\
-  const cats=Object.keys(catMap);\
-  bar.innerHTML=cats.map((cat,i)=>\{const pct=(catMap[cat]/totalIncome*100).toFixed(1);return `<div style="flex:$\{pct\};background:$\{BAR_COLORS[i%BAR_COLORS.length]\};min-width:$\{pct>0.5?'2px':'0'\}" title="$\{cat\}: $\{pct\}%"></div>`;\}).join('');\
-  legend.innerHTML=cats.map((cat,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:$\{BAR_COLORS[i%BAR_COLORS.length]\};flex-shrink:0"></div><span>$\{cat\}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--text)">$\{(catMap[cat]/totalIncome*100).toFixed(1)\}%</span></div>`).join('');\
-\}\
-\
-function updateDashGoals()\{\
-  const c=document.getElementById('dash-goals');if(!c)return;\
-  if(!appState.goals.length)\{c.innerHTML='<div style="color:var(--faint);font-size:0.83rem">\uc0\u23578 \u28961 \u30446 \u27161 \u65292 \u35531 \u21069 \u24448 \u12300 \u30446 \u27161 \u36861 \u36452 \u12301 \u26032 \u22686 </div>';return;\}\
-  c.innerHTML=appState.goals.map(g=>\{const pct=Math.min(100,g.target>0?Math.round(g.saved/g.target*100):0);const col=pct>=75?'teal':pct>=40?'gold':'sky';return `<div class="prog"><div class="prog-head"><span class="prog-name">$\{g.icon\} $\{g.name\}</span><span class="prog-info">$$\{g.saved.toLocaleString()\} / $$\{g.target.toLocaleString()\} ($\{pct\}%)</span></div><div class="prog-track"><div class="prog-fill $\{col\}" style="width:$\{pct\}%"></div></div></div>`;\}).join('');\
-\}\
-\
-function initCharts()\{\
-  chartExp=new Chart(document.getElementById('chart-exp').getContext('2d'),\{type:'doughnut',data:\{labels:[],datasets:[\{data:[],backgroundColor:['#d4a843','#3ecfb2','#4f9de8','#e05b6a','#a06be0','#e0a043','#5ce0c9','#e05ca8'],borderWidth:0,hoverOffset:6\}]\},options:\{cutout:'66%',plugins:\{legend:\{labels:\{color:'#7a849c',font:\{family:'JetBrains Mono',size:10\},padding:10\}\},tooltip:\{callbacks:\{label:ctx=>` $\{ctx.label\}: $$\{ctx.raw.toLocaleString()\}`\}\}\}\}\});\
-  chartAlloc=new Chart(document.getElementById('chart-alloc').getContext('2d'),\{type:'bar',data:\{labels:['\uc0\u24517 \u35201 \u25903 \u20986 ','\u20786 \u33988 ','\u25237 \u36039 ','\u36996 \u20661 ','\u24392 \u24615 '],datasets:[\{label:'\u24314 \u35696 %',data:[50,15,15,10,10],backgroundColor:'rgba(212,168,67,0.25)',borderColor:'rgba(212,168,67,0.5)',borderWidth:1,borderRadius:4\},\{label:'\u23526 \u38555 %',data:[0,0,0,0,0],backgroundColor:'rgba(62,207,178,0.25)',borderColor:'rgba(62,207,178,0.5)',borderWidth:1,borderRadius:4\}]\},options:\{scales:\{x:\{ticks:\{color:'#7a849c',font:\{size:10,family:'Noto Sans TC'\}\},grid:\{color:'rgba(44,53,80,0.5)'\}\},y:\{ticks:\{color:'#7a849c',callback:v=>v+'%'\},grid:\{color:'rgba(44,53,80,0.5)'\},max:65\}\},plugins:\{legend:\{labels:\{color:'#7a849c',font:\{family:'JetBrains Mono',size:10\},padding:10\}\}\}\}\});\
-\}\
-\
-function updateCharts()\{\
-  if(!chartExp||!chartAlloc)return;\
-  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;if(!totalIncome)return;\
-  const catMap=\{\};appState.expenses.forEach(e=>\{const amt=getExpAmount(e);catMap[e.cat]=(catMap[e.cat]||0)+amt;\});\
-  chartExp.data.labels=Object.keys(catMap);chartExp.data.datasets[0].data=Object.values(catMap);chartExp.update();\
-  const necessary=appState.expenses.filter(e=>!['\uc0\u25237 \u36039 ','\u20786 \u33988 ','\u22857 \u29563 /\u24904 \u21892 '].includes(e.cat)).reduce((s,e)=>s+getExpAmount(e),0);\
-  const savings=appState.expenses.filter(e=>e.cat==='\uc0\u20786 \u33988 ').reduce((s,e)=>s+getExpAmount(e),0);\
-  const invest=appState.expenses.filter(e=>e.cat==='\uc0\u25237 \u36039 ').reduce((s,e)=>s+getExpAmount(e),0);\
-  const debtPay=appState.debts.reduce((s,d)=>s+(+d.minPay||0),0);\
-  const remaining=Math.max(0,totalIncome-necessary-savings-invest-debtPay);\
-  chartAlloc.data.datasets[1].data=[+(necessary/totalIncome*100).toFixed(1),+(savings/totalIncome*100).toFixed(1),+(invest/totalIncome*100).toFixed(1),+(debtPay/totalIncome*100).toFixed(1),+(remaining/totalIncome*100).toFixed(1)];\
-  chartAlloc.update();\
-\}\
-\
-function renderPlan()\{\
-  const s=appState,totalIncome=s.incomeNet+s.incomeSpouse+s.incomeOther;\
-  const totalExp=s.expenses.reduce((sum,e)=>sum+getExpAmount(e),0);\
-  const balance=totalIncome-totalExp,totalDebt=s.debts.reduce((sum,d)=>sum+(+d.amount||0),0);\
-  const ratio=totalIncome>0?totalExp/totalIncome:0;\
-  if(!totalIncome)\{document.getElementById('plan-body').innerHTML='<div class="alert warn"><span class="alert-icon">
-\f1\b0 \uc0\u9888 \u65039 
-\f0\b </span>\uc0\u35531 \u20808 \u23436 \u25104 \u35373 \u23450 \u31934 \u38728 \u22635 \u23531 \u25910 \u20837 \u36039 \u26009 \u12290 </div>';return;\}\
-  const hasChildren=obData.marital?.includes('\uc0\u23567 \u23401 ')||obData.marital==='\u21934 \u35242 ';\
-  const tithe=s.expenses.find(e=>e.name.includes('\uc0\u22857 \u29563 '))?getExpAmount(s.expenses.find(e=>e.name.includes('\u22857 \u29563 '))):0;\
-  const savingsMonthly=s.expenses.filter(e=>e.cat==='\uc0\u20786 \u33988 ').reduce((s,e)=>s+getExpAmount(e),0);\
-  const investMonthly=s.expenses.filter(e=>e.cat==='\uc0\u25237 \u36039 ').reduce((s,e)=>s+getExpAmount(e),0);\
-  const debtMinPay=s.debts.reduce((sum,d)=>sum+(+d.minPay||0),0);\
-  const extraDebt=totalDebt>0?Math.min(balance*0.25,Math.round(totalIncome*0.05)):0;\
-  const suggestInvest=Math.round(totalIncome*0.15);\
-  const suggestFlex=Math.max(0,balance-extraDebt-suggestInvest);\
-  const emergGoal=s.goals.find(g=>g.name.includes('\uc0\u32202 \u24613 '));\
-  let html='';\
-  if(ratio>0.8)html+=`<div class="alert bad"><span class="alert-icon">
-\f1\b0 \uc0\u55357 \u57000 
-\f0\b </span><div><strong>\uc0\u35686 \u31034 \u65306 </strong>\u22266 \u23450 \u25903 \u20986 \u21344 \u25910 \u20837  $\{(ratio*100).toFixed(1)\}%\u65292 \u36229 \u20986 \u23433 \u20840 \u32218 \u65292 \u35531 \u31435 \u21363 \u32302 \u28187 \u38750 \u24517 \u35201 \u25903 \u20986 \u12290 </div></div>`;\
-  else if(ratio>0.65)html+=`<div class="alert warn"><span class="alert-icon">
-\f1\b0 \uc0\u9888 \u65039 
-\f0\b </span><div><strong>\uc0\u25903 \u20986 \u20559 \u39640 \u65306 </strong>\u22266 \u23450 \u25903 \u20986 \u21344 \u25910 \u20837  $\{(ratio*100).toFixed(1)\}%\u65292 \u24314 \u35696 \u25511 \u21046 \u22312  65% \u20197 \u20839 \u12290 </div></div>`;\
-  else html+=`<div class="alert ok"><span class="alert-icon">
-\f1\b0 \uc0\u9989 
-\f0\b </span><div><strong>\uc0\u36001 \u21209 \u32080 \u27083 \u20581 \u24247 \u65306 </strong>\u22266 \u23450 \u25903 \u20986 \u21344 \u25910 \u20837  $\{(ratio*100).toFixed(1)\}%\u65292 \u32380 \u32396 \u20445 \u25345 \u65281 </div></div>`;\
-  html+=`<div class="card"><div class="card-label">\uc0\u27599 \u26376 \u36039 \u37329 \u20998 \u37197 \u24314 \u35696 </div>`;\
-  const steps=[];\
-  if(tithe>0)steps.push(\{title:'\uc0\u20160 \u19968 \u22857 \u29563  / \u24904 \u21892 ',badge:'badge-gold',desc:'\u20778 \u20808 \u23653 \u34892 \u22857 \u29563 \u65292 \u24314 \u35696 \u35373 \u23450 \u33258 \u21205 \u36681 \u24115 \u65292 \u27599 \u26376 \u22266 \u23450 \u22519 \u34892 \u12290 ',amt:tithe,sub:'\u26376 \u25910 \u20837 10%'\});\
-  steps.push(\{title:'\uc0\u32202 \u24613 \u38928 \u20633 \u37329 ',badge:'badge-sky',desc:`\u30446 \u27161 \u65306 \u26376 \u25903 \u20986  \'d76 = $$\{(totalIncome*6).toLocaleString()\}\u12290 $\{emergGoal?`\u30446 \u21069 \u24050 \u23384  $$\{emergGoal.saved.toLocaleString()\}\u65292 `:''\}\u23384 \u25918 \u26044 \u39640 \u21033 \u27963 \u23384 \u25110 \u36008 \u24163 \u22411 \u22522 \u37329 \u12290 `,amt:savingsMonthly||Math.round(totalIncome*0.08),sub:'\u27599 \u26376 \u25237 \u20837 '\});\
-  if(totalDebt>0)\{const hd=s.debts.reduce((max,d)=>(+d.rate>+max.rate?d:max),\{rate:0\});steps.push(\{title:'\uc0\u21152 \u36895 \u28165 \u20767 \u20661 \u21209 ',badge:'badge-rose',desc:`\u25505 \u38634 \u23849 \u27861 \u65292 \u20778 \u20808 \u28165 \u20767  $\{hd.name||'\u39640 \u21033 \u29575 \u20661 \u21209 '\}\u65288 $\{hd.rate\}%\u65289 \u12290 \u22312 \u26368 \u20302 \u36996 \u27454 \u22806 \u27599 \u26376 \u38989 \u22806 \u25237 \u20837 \u12290 `,amt:debtMinPay+extraDebt,sub:`\u21547 \u26368 \u20302 \u36996 \u27454  $$\{debtMinPay.toLocaleString()\}`\});\}\
-  steps.push(\{title:'\uc0\u38263 \u26399 \u25237 \u36039 ',badge:'badge-teal',desc:`\u31337 \u20581 \u25104 \u38263 \u65306 0050 / 0056 \u23450 \u26399 \u23450 \u38989 \u28858 \u26680 \u24515 \u12290 $\{obData.marital?.includes('\u23130 ')?'\u20491 \u32929 \u25511 \u21046 \u22312  20% \u20197 \u20839 \u12290 ':'\u26178 \u38291 \u26159 \u26368 \u22823 \u35079 \u21033 \u24341 \u25806 \u12290 '\}`,amt:investMonthly||suggestInvest,sub:'\u38263 \u26399 \u23450 \u26399 \u23450 \u38989 '\});\
-  if(hasChildren)\{const eduGoal=s.goals.find(g=>g.name.includes('\uc0\u25945 \u32946 '));steps.push(\{title:'\u23401 \u23376 \u25945 \u32946 \u22522 \u37329 ',badge:'badge-gold',desc:`$\{obData.ages?'\u23401 \u23376 \u24180 \u40801 \u65306 '+obData.ages+'\u12290 ':''\}\u36234 \u26089 \u38283 \u22987 \u36234 \u22909 \u65292 \u21487 \u37197 \u32622 \u33267 \u39640 \u32929 \u24687  ETF \u28414 \u20837 \u20877 \u25237 \u36039 \u12290 `,amt:eduGoal?.monthly||2000,sub:'\u27599 \u26376 \u23560 \u27454 \u20786 \u20633 '\});\}\
-  steps.push(\{title:'\uc0\u24392 \u24615 \u29983 \u27963 \u36027 ',badge:'badge-sky',desc:'\u21097 \u39192 \u37329 \u38989 \u29992 \u26044 \u39154 \u39135 \u12289 \u23067 \u27138 \u12289 \u37291 \u30274 \u31561 \u12290 \u24314 \u35696 \u27599 \u26376 \u35352 \u24115 \u36861 \u36452 \u12290 ',amt:Math.max(0,suggestFlex),sub:'\u21547 \u39154 \u39135 /\u23067 \u27138 '\});\
-  steps.forEach((s,i)=>\{html+=`<div class="plan-item"><div class="plan-num">$\{i+1\}</div><div class="plan-body"><div class="plan-t">$\{s.title\} <span class="badge $\{s.badge\}">$\{s.badge.replace('badge-','')\}</span></div><div class="plan-d">$\{s.desc\}</div></div><div class="plan-amt">$$\{(s.amt||0).toLocaleString()\}<small>$\{s.sub\}</small></div></div>`;\});\
-  html+='</div>';\
-  if(obData.goals?.includes('\uc0\u36023 \u25151 '))\{html+=`<div class="card"><div class="card-label">\u36023 \u25151 \u35215 \u21123 \u36335 \u32218 </div><div class="alert info"><span class="alert-icon">
-\f1\b0 \uc0\u55356 \u57312 
-\f0\b </span><div><strong>\uc0\u24314 \u35696 \u38918 \u24207 \u65306 </strong>\u20808 \u28165 \u38500 \u39640 \u21033 \u29575 \u20661 \u21209  \u8594  \u24314 \u31435 \u32202 \u24613 \u38928 \u20633 \u37329  \u8594  \u38283 \u22987 \u23384 \u38957 \u26399 \u27454 <br>\u38957 \u26399 \u27454 \u24314 \u35696 \u25151 \u20729  20-30%\u12290 \u25151 \u36024 \u26376 \u20184 \u19981 \u36229 \u36942 \u26376 \u25910 \u20837  35%\u65292 \u21363  <strong>$$\{Math.round(totalIncome*0.35).toLocaleString()\}/\u26376 </strong>\u12290 </div></div></div>`;\}\
-  document.getElementById('plan-body').innerHTML=html;\
-\}\
-\
-function renderInvest()\{\
-  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;\
-  const investBudget=appState.expenses.find(e=>e.cat==='\uc0\u25237 \u36039 ')?getExpAmount(appState.expenses.find(e=>e.cat==='\u25237 \u36039 ')):Math.round(totalIncome*0.15);\
-  const rows=[\{color:'#d4a843',name:'\uc0\u21488 \u28771 50 (0050)',tag:'\u26680 \u24515 \u37197 \u32622 ',pct:50,desc:'\u36861 \u36452 \u21488 \u28771 \u24066 \u20540 \u26368 \u22823 50\u23478 \u20844 \u21496 \u65292 \u36027 \u29992 \u29575 \u20302 \u65292 \u23450 \u26399 \u23450 \u38989 \u28858 \u26368 \u20339 \u31574 \u30053 \u12290 '\},\{color:'#3ecfb2',name:'\u20803 \u22823 \u39640 \u32929 \u24687  (0056)',tag:'\u25910 \u30410 \u31337 \u23450 ',pct:25,desc:'\u39640 \u32929 \u24687 \u31574 \u30053 \u65292 \u32929 \u24687 \u21487 \u20877 \u25237 \u20837 \u35079 \u21033 \u22686 \u38263 \u65292 \u36969 \u21512 \u38263 \u26399 \u23478 \u24237 \u20786 \u20633 \u12290 '\},\{color:'#4f9de8',name:'\u20840 \u29699 ETF (VT/VOO)',tag:'\u22283 \u38555 \u20998 \u25955 ',pct:15,desc:'\u20998 \u25955 \u33267 \u20840 \u29699 \u24066 \u22580 \u65292 \u38477 \u20302 \u21934 \u19968 \u22283 \u23478 \u39080 \u38570 \u65292 \u21487 \u29992 \u35079 \u22996 \u35351 \u25237 \u20837 \u12290 '\},\{color:'#a06be0',name:'\u29694 \u37329  / \u36008 \u24163 \u22522 \u37329 ',tag:'\u27969 \u21205 \u24615 ',pct:10,desc:'\u20445 \u30041 \u37096 \u20998 \u27969 \u21205 \u36039 \u37329 \u65292 \u25033 \u23565 \u31361 \u30332 \u25903 \u20986 \u65292 \u23384 \u25918 \u39640 \u21033 \u27963 \u23384 \u12290 '\}];\
-  let h=`<div class="alert info"><span class="alert-icon">
-\f1\b0 \uc0\u55357 \u56524 
-\f0\b </span>\uc0\u20197 \u19979 \u24314 \u35696 \u22522 \u26044 \u31337 \u20581 \u25104 \u38263 \u22411 \u31574 \u30053 \u65292 \u20677 \u20379 \u21443 \u32771 \u65292 \u38750 \u23560 \u26989 \u25237 \u36039 \u24314 \u35696 \u12290 </div><div class="card"><div class="card-label">\u27599 \u26376 \u25237 \u36039 \u37197 \u32622 \u65288 \u38928 \u31639  $$\{investBudget.toLocaleString()\}\u65289 </div>`;\
-  rows.forEach(r=>\{const amt=Math.round(investBudget*r.pct/100);h+=`<div class="inv-row"><div class="inv-dot" style="background:$\{r.color\}"></div><div><div style="font-size:0.88rem;font-weight:500;margin-bottom:3px">$\{r.name\} <span class="badge badge-gold">$\{r.tag\}</span></div><div style="font-size:0.78rem;color:var(--muted)">$\{r.desc\}</div></div><div style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;color:var(--gold2);white-space:nowrap">$\{r.pct\}%</div><div style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;color:var(--teal);white-space:nowrap;text-align:right">$$\{amt.toLocaleString()\}</div></div>`;\});\
-  h+=`</div><div class="two-col"><div class="card"><div class="card-label">\uc0\u26680 \u24515 \u21407 \u21063 </div><div class="alert ok"><span class="alert-icon">
-\f1\b0 \uc0\u55357 \u56517 
-\f0\b </span><div><strong>\uc0\u23450 \u26399 \u23450 \u38989 \u65306 </strong>\u27599 \u26376 \u22266 \u23450 \u26085 \u26399 \u33258 \u21205 \u25187 \u27454 \u65292 \u19981 \u29468 \u24066 \u22580 \u39640 \u20302 \u40670 \u12290 </div></div>$\{appState.debts.length>0?`<div class="alert warn"><span class="alert-icon">
-\f1\b0 \uc0\u9889 
-\f0\b </span><div><strong>\uc0\u20661 \u21209 \u20778 \u20808 \u65306 </strong>\u33509 \u20661 \u21209 \u21033 \u29575 \u65288 $\{Math.max(...appState.debts.map(d=>+d.rate||0))\}%\u65289 \u39640 \u26044 \u25237 \u36039 \u38928 \u26399 \u22577 \u37228 \u65292 \u20778 \u20808 \u36996 \u20661 \u12290 </div></div>`:''\}</div><div class="card"><div class="card-label">\u35079 \u21033 \u25928 \u26524 \u65288 \u20551 \u35373 \u24180 \u22577 \u37228  7%\u65289 </div>`+[1,3,5,10].map(y=>\{const amt=Math.round(investBudget*12*((Math.pow(1.07,y)-1)/0.07));return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(44,53,80,0.4);font-size:0.82rem"><span style="color:var(--muted)">'+y+' \u24180 \u24460 </span><span style="font-family:JetBrains Mono,monospace;color:var(--teal)">$'+amt.toLocaleString()+'</span></div>';\}).join('')+'</div></div>';\
-  document.getElementById('invest-body').innerHTML=h;\
-\}\
-\
-// \uc0\u9472 \u9472  INIT: check if already logged in \u9472 \u9472 \
-initMonthSelect();\
-sb.auth.getSession().then((\{data:\{session\}\})=>\{\
-  if(!session)\{\
-    // Not logged in, show login screen\
-    document.getElementById('login-screen').style.display='flex';\
-  \}\
-  // If logged in, onAuthStateChange will handle it\
-\});\
-</script>\
-</body>\
-</html>}
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>理財助手</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+/* ══ SUPABASE CONFIG NOTICE ══ */
+/* 請在下方 JS 區域填入你的 SUPABASE_URL 和 SUPABASE_ANON_KEY */
+
+/* ═══ LOGIN SCREEN ═══ */
+#login-screen {
+  position:fixed;inset:0;z-index:2000;
+  background:#0e1117;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background-image:
+    radial-gradient(ellipse 70% 60% at 15% 85%, rgba(212,168,67,0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 70% at 85% 15%, rgba(62,207,178,0.06) 0%, transparent 65%);
+}
+.login-card {
+  width:100%;max-width:380px;
+  background:#161c27;
+  border:1px solid #2c3550;border-radius:20px;
+  padding:40px 36px;
+  display:flex;flex-direction:column;align-items:center;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5);
+  animation:loginIn 0.5s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes loginIn{from{opacity:0;transform:translateY(30px) scale(0.97)}to{opacity:1;transform:none}}
+.login-logo {
+  font-family:'Playfair Display',serif;
+  font-size:1.5rem;color:#d4a843;
+  margin-bottom:6px;letter-spacing:0.04em;
+  display:flex;align-items:center;gap:10px;
+}
+.login-mark { font-size:2.2rem; line-height:1; }
+.login-tagline {
+  font-size:0.82rem;color:#7a849c;
+  margin-bottom:32px;text-align:center;line-height:1.7;
+}
+.login-divider {
+  width:100%;display:flex;align-items:center;gap:12px;
+  margin:20px 0;
+}
+.login-divider::before,.login-divider::after {
+  content:'';flex:1;height:1px;background:#2c3550;
+}
+.login-divider span { font-size:0.72rem;color:#4a5268; }
+.btn-google {
+  width:100%;
+  padding:13px 20px;
+  background:#1e2535;
+  border:1px solid #3a4568;border-radius:12px;
+  color:#e4e8f4;
+  font-family:'Noto Sans TC',sans-serif;
+  font-size:0.9rem;font-weight:500;
+  cursor:pointer;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-google:hover { background:#252e42;border-color:#d4a843;transform:translateY(-1px); }
+.btn-google svg { width:20px;height:20px;flex-shrink:0; }
+.login-email-section { width:100%; }
+.login-input {
+  width:100%;
+  background:#1e2535;border:1px solid #2c3550;border-radius:10px;
+  padding:11px 14px;color:#e4e8f4;
+  font-family:'JetBrains Mono',monospace;font-size:0.88rem;
+  outline:none;transition:border-color 0.2s;margin-bottom:10px;
+}
+.login-input:focus { border-color:#5a4618; }
+.login-input::placeholder { color:#4a5268; }
+.btn-email-login {
+  width:100%;padding:12px;
+  background:#d4a843;border:none;border-radius:10px;
+  color:#0e1117;font-family:'Noto Sans TC',sans-serif;
+  font-size:0.9rem;font-weight:700;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-email-login:hover { background:#ecc96b; }
+.login-toggle {
+  font-size:0.78rem;color:#7a849c;margin-top:10px;
+  cursor:pointer;text-align:center;
+}
+.login-toggle span { color:#d4a843;text-decoration:underline; }
+.login-msg {
+  font-size:0.78rem;margin-top:12px;text-align:center;min-height:18px;
+}
+.login-msg.ok { color:#3ecfb2; }
+.login-msg.err { color:#e05b6a; }
+.login-privacy {
+  font-size:0.7rem;color:#4a5268;
+  margin-top:24px;text-align:center;line-height:1.6;
+  border-top:1px solid #2c3550;padding-top:16px;width:100%;
+}
+
+/* ═══ LOADING ═══ */
+#loading-screen {
+  position:fixed;inset:0;z-index:1999;
+  background:#0e1117;
+  display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.loading-logo {
+  font-family:'Playfair Display',serif;
+  font-size:1.2rem;color:#d4a843;letter-spacing:0.04em;
+  display:flex;align-items:center;gap:8px;
+}
+.dots { display:flex;gap:6px; }
+.dot {
+  width:8px;height:8px;border-radius:50%;background:#d4a843;
+  animation:dotPop 1.2s ease-in-out infinite;
+}
+.dot:nth-child(2){animation-delay:0.2s}
+.dot:nth-child(3){animation-delay:0.4s}
+@keyframes dotPop{0%,100%{opacity:0.2;transform:scale(0.7)}50%{opacity:1;transform:scale(1.2)}}
+.loading-msg { font-size:0.82rem;color:#7a849c; }
+
+/* ═══ SAVE STATUS ═══ */
+#save-status {
+  position:fixed;bottom:16px;right:20px;
+  font-size:0.72rem;z-index:300;
+  transition:opacity 0.4s;
+  font-family:'JetBrains Mono',monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo"><span class="login-mark">◈</span> 理財助手</div>
+    <div class="login-tagline">個人財務規劃，資料加密儲存<br>每個帳號完全獨立，無法互相查看</div>
+
+    <!-- Google OAuth -->
+    <button class="btn-google" onclick="signInWithGoogle()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      使用 Google 帳號登入
+    </button>
+
+    <div class="login-divider"><span>或用 Email</span></div>
+
+    <div class="login-email-section" id="email-section">
+      <input class="login-input" type="email" id="login-email" placeholder="your@email.com">
+      <input class="login-input" type="password" id="login-password" placeholder="密碼（至少 6 位）">
+      <button class="btn-email-login" id="email-btn" onclick="signInWithEmail()">登入 / 註冊</button>
+      <div class="login-toggle">還沒有帳號？<span onclick="toggleMode()">點此切換</span>到註冊模式</div>
+      <div class="login-msg" id="login-msg"></div>
+    </div>
+
+    <div class="login-privacy">
+      🔒 資料加密存於 Supabase 雲端<br>
+      每人只能讀取自己的資料，包括管理員<br>
+      依 Supabase 隱私政策保護
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOADING SCREEN ══ -->
+<div id="loading-screen">
+  <div class="loading-logo">◈ 理財助手</div>
+  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  <div class="loading-msg" id="loading-msg">正在載入你的資料…</div>
+</div>
+
+<!-- ══ SAVE STATUS ══ -->
+<div id="save-status"></div>
+
+<!-- ══ MAIN APP (原有全部 HTML) ══ -->
+<div id="onboarding" style="display:none">
+  <div class="ob-bg"></div>
+  <div class="ob-top">
+    <div class="ob-logo"><span class="ob-logo-mark">◈</span> 理財助手</div>
+    <div class="ob-steps" id="ob-step-dots"></div>
+  </div>
+  <div class="ob-body" id="ob-body"></div>
+  <div class="ob-nav">
+    <div class="ob-nav-left">
+      <button class="btn-back" id="btn-back" onclick="obBack()" style="display:none">← 上一步</button>
+      <span class="ob-progress-text" id="ob-progress-text"></span>
+    </div>
+    <div id="ob-nav-right">
+      <button class="btn-next" id="btn-next" onclick="obNext()">繼續 →</button>
+    </div>
+  </div>
+</div>
+
+<div id="app" style="display:none;flex-direction:row;height:100vh">
+  <nav class="sidebar">
+    <div class="sidebar-logo"><span class="sidebar-logo-mark">◈</span> 理財助手</div>
+    <div class="nav-group-label">概覽</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">◈</span> 財務儀表板</div>
+    <div class="nav-group-label">財務資料</div>
+    <div class="nav-item" onclick="showPage('expenses')"><span class="nav-icon">↓</span> 收入與支出</div>
+    <div class="nav-item" onclick="showPage('debt')"><span class="nav-icon">⚠</span> 債務管理</div>
+    <div class="nav-item" onclick="showPage('ledger')"><span class="nav-icon">≡</span> 每月記帳</div>
+    <div class="nav-group-label">財務規劃</div>
+    <div class="nav-item" onclick="showPage('plan')"><span class="nav-icon">★</span> AI 規劃建議</div>
+    <div class="nav-item" onclick="showPage('goals')"><span class="nav-icon">◎</span> 目標追蹤</div>
+    <div class="nav-item" onclick="showPage('invest')"><span class="nav-icon">↗</span> 投資配置</div>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div style="flex:1;min-width:0">
+          <div class="user-name" id="sidebar-name">使用者</div>
+          <div style="font-size:0.68rem;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="sidebar-email"></div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <button onclick="resetOnboarding()" style="flex:1;padding:4px 0;background:transparent;border:1px solid var(--line2);border-radius:5px;color:var(--muted);font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'">重新設定</button>
+            <button onclick="signOut()" style="flex:1;padding:4px 0;background:transparent;border:1px solid var(--line2);border-radius:5px;color:var(--muted);font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif" onmouseover="this.style.color='var(--rose)'" onmouseout="this.style.color='var(--muted)'">登出</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-wrap">
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-title" id="dash-title">財務儀表板</div>
+        <div class="page-sub" id="dash-sub">本月財務健康概覽</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="stat-l">月總收入</div><div class="stat-v gold" id="s-income">—</div><div class="stat-s">稅後實領</div></div>
+        <div class="stat"><div class="stat-l">固定支出</div><div class="stat-v rose" id="s-expense">—</div><div class="stat-s">每月固定</div></div>
+        <div class="stat"><div class="stat-l">可配置餘額</div><div class="stat-v teal" id="s-balance">—</div><div class="stat-s">待分配</div></div>
+        <div class="stat"><div class="stat-l">財務健康分</div><div class="stat-v sky" id="s-score">—</div><div class="stat-s">100 分滿分</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card"><div class="card-label">支出結構</div><div class="chart-box"><canvas id="chart-exp"></canvas></div></div>
+        <div class="card"><div class="card-label">資金配置 實際 vs 建議</div><div class="chart-box"><canvas id="chart-alloc"></canvas></div></div>
+      </div>
+      <div class="card"><div class="card-label">目標進度</div><div id="dash-goals"></div></div>
+    </div>
+
+    <div id="page-expenses" class="page">
+      <div class="page-header"><div class="page-title">收入與固定支出</div><div class="page-sub">即時調整本月收入，支出可設定固定金額或收入比例</div></div>
+      <div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.04)">
+        <div class="card-label">本月收入調整</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end">
+          <div class="field-group"><label class="field-label">本人月收入 $</label><input class="field-input" id="adj-income" type="number" placeholder="80000" oninput="adjustIncome()"></div>
+          <div class="field-group"><label class="field-label">配偶月收入 $</label><input class="field-input" id="adj-spouse" type="number" placeholder="0" oninput="adjustIncome()"></div>
+          <div class="field-group"><label class="field-label">其他收入 $</label><input class="field-input" id="adj-other" type="number" placeholder="0" oninput="adjustIncome()"></div>
+          <div style="padding-bottom:1px"><div style="font-size:0.7rem;color:var(--muted);margin-bottom:5px">月收入合計</div><div id="adj-total" style="font-family:'JetBrains Mono',monospace;font-size:1.4rem;color:var(--gold2);white-space:nowrap">$0</div></div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:0.75rem;color:var(--muted)">快速模擬：</span>
+          <button class="btn-sim" onclick="simIncome(0.8)">本月少 20%</button>
+          <button class="btn-sim" onclick="simIncome(0.9)">本月少 10%</button>
+          <button class="btn-sim" onclick="simIncome(1.0)">回復正常</button>
+          <button class="btn-sim" onclick="simIncome(1.1)">多 10%（獎金）</button>
+          <button class="btn-sim" onclick="simIncome(1.2)">多 20%（獎金）</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-label" style="margin-bottom:0">支出項目</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:0.72rem;color:var(--muted)">金額模式：</span>
+            <button id="mode-fixed-btn" class="mode-btn active" onclick="setExpMode('fixed')">固定金額</button>
+            <button id="mode-ratio-btn" class="mode-btn" onclick="setExpMode('ratio')">收入比例</button>
+          </div>
+        </div>
+        <div id="exp-list-header" style="display:grid;gap:8px;padding-bottom:10px;font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);"></div>
+        <div id="exp-list" style="margin-top:10px"></div>
+        <button class="btn-addrow" style="margin-top:8px" onclick="addExpRow()">＋ 新增支出項目</button>
+      </div>
+      <div class="card" style="background:rgba(212,168,67,0.03)">
+        <div class="card-label">本月支出摘要</div>
+        <div class="stat-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat"><div class="stat-l">支出合計</div><div class="stat-v rose" id="exp-total-v">—</div></div>
+          <div class="stat"><div class="stat-l">支出占收入</div><div class="stat-v" id="exp-ratio-v">—</div></div>
+          <div class="stat"><div class="stat-l">月可用餘額</div><div class="stat-v teal" id="exp-remain-v">—</div></div>
+          <div class="stat"><div class="stat-l">比例項目小計</div><div class="stat-v sky" id="exp-ratio-sum-v">—</div></div>
+        </div>
+        <div style="margin-top:14px">
+          <div style="font-size:0.72rem;color:var(--faint);margin-bottom:6px">支出分佈</div>
+          <div id="exp-breakdown-bar" style="display:flex;height:8px;border-radius:4px;overflow:hidden;gap:1px"></div>
+          <div id="exp-breakdown-legend" style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-debt" class="page">
+      <div class="page-header"><div class="page-title">債務管理</div><div class="page-sub">記錄並規劃清償策略</div></div>
+      <div class="card">
+        <div class="card-label">債務明細</div>
+        <div style="display:grid;grid-template-columns:1fr 130px 80px 110px 30px;gap:8px;padding-bottom:10px;font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);">
+          <span>名稱</span><span>總金額</span><span>年利率%</span><span>最低還款</span><span></span>
+        </div>
+        <div id="debt-list" style="margin-top:10px"></div>
+        <button class="btn-addrow" style="margin-top:8px" onclick="addDebtRow()">＋ 新增債務</button>
+      </div>
+      <div id="debt-strategy" class="card" style="display:none">
+        <div class="card-label">清償策略建議</div>
+        <div id="debt-strategy-body"></div>
+      </div>
+    </div>
+
+    <div id="page-ledger" class="page">
+      <div class="page-header"><div class="page-title">每月記帳</div><div class="page-sub">登記本月實際收支</div></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <select id="ledger-month" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none"></select>
+          <button class="btn-addrow" onclick="addLedgerRow()">＋ 新增記錄</button>
+        </div>
+        <div class="ledger-header"><span>日期</span><span>項目</span><span>金額</span><span>類型</span><span></span></div>
+        <div id="ledger-list"></div>
+        <hr class="divider">
+        <div style="display:flex;justify-content:flex-end;gap:24px;font-family:'JetBrains Mono',monospace;font-size:0.85rem">
+          <span style="color:var(--muted)">收入：<span class="l-income" id="l-total-in">$0</span></span>
+          <span style="color:var(--muted)">支出：<span class="l-expense" id="l-total-out">$0</span></span>
+          <span style="color:var(--muted)">結餘：<span id="l-net" style="color:var(--gold2)">$0</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-plan" class="page">
+      <div class="page-header"><div class="page-title">AI 財務規劃建議</div><div class="page-sub">根據你的實際財務狀況產生個人化規劃</div></div>
+      <div id="plan-body"></div>
+    </div>
+
+    <div id="page-goals" class="page">
+      <div class="page-header"><div class="page-title">財務目標追蹤</div><div class="page-sub">設定並追蹤重大財務目標</div></div>
+      <div class="card">
+        <div class="card-label">新增目標</div>
+        <div class="form-grid-3" style="margin-bottom:12px">
+          <div class="field-group"><label class="field-label">目標名稱</label><input class="field-input" id="g-name" placeholder="例：買房頭期款"></div>
+          <div class="field-group"><label class="field-label">目標金額 $</label><input class="field-input" id="g-target" type="number" placeholder="1000000"></div>
+          <div class="field-group"><label class="field-label">已存金額 $</label><input class="field-input" id="g-saved" type="number" placeholder="0"></div>
+        </div>
+        <div class="form-grid-3" style="margin-bottom:16px">
+          <div class="field-group"><label class="field-label">每月存入 $</label><input class="field-input" id="g-monthly" type="number" placeholder="5000"></div>
+          <div class="field-group"><label class="field-label">圖示</label>
+            <select class="field-input" id="g-icon">
+              <option value="🏠">🏠 買房</option><option value="🚗">🚗 買車</option>
+              <option value="🎓">🎓 教育基金</option><option value="🏦">🏦 緊急預備金</option>
+              <option value="✈️">✈️ 旅遊</option><option value="💰">💰 百萬儲蓄</option>
+              <option value="📈">📈 投資基金</option><option value="🎯">🎯 其他</option>
+            </select>
+          </div>
+          <div class="field-group"><label class="field-label">&nbsp;</label><button class="btn-p" onclick="addGoal()">＋ 新增目標</button></div>
+        </div>
+      </div>
+      <div class="goal-grid" id="goals-grid"></div>
+    </div>
+
+    <div id="page-invest" class="page">
+      <div class="page-header"><div class="page-title">投資配置建議</div><div class="page-sub">穩健成長型投資組合建議（非投資建議，僅供參考）</div></div>
+      <div id="invest-body"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* 將原有 finance.html 的全部 CSS 嵌入此處 */
+:root{--ink:#0e1117;--ink2:#161c27;--ink3:#1e2535;--ink4:#252e42;--line:#2c3550;--line2:#3a4568;--gold:#d4a843;--gold2:#ecc96b;--gold3:#f5dfa0;--golddim:#5a4618;--teal:#3ecfb2;--tealdim:#1a3d35;--rose:#e05b6a;--rosedim:#3d1a20;--sky:#4f9de8;--skydim:#1a2d42;--muted:#7a849c;--faint:#4a5268;--text:#e4e8f4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--ink);color:var(--text);overflow:hidden}
+#onboarding{position:fixed;inset:0;z-index:1000;background:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+.ob-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 10% 90%,rgba(212,168,67,0.07) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 90% 10%,rgba(62,207,178,0.05) 0%,transparent 70%);pointer-events:none}
+.ob-top{padding:28px 48px 0;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.ob-logo{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--gold);letter-spacing:0.04em;display:flex;align-items:center;gap:8px}
+.ob-logo-mark{font-size:1.5rem;line-height:1}
+.ob-steps{display:flex;gap:6px;align-items:center}
+.ob-step-dot{width:28px;height:4px;border-radius:2px;background:var(--line2);transition:all 0.4s}
+.ob-step-dot.done{background:var(--gold)}
+.ob-step-dot.active{background:var(--gold2);width:44px}
+.ob-body{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 48px;position:relative;z-index:1;overflow:hidden}
+.ob-slide{width:100%;max-width:680px;animation:slideIn 0.4s cubic-bezier(0.34,1.2,0.64,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dotPulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.1)}}
+.ob-step-label{font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ob-step-label::before{content:'';display:block;width:20px;height:2px;background:var(--gold);border-radius:1px}
+.ob-q{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;line-height:1.3;color:var(--text);margin-bottom:8px}
+.ob-hint{font-size:0.85rem;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.ob-input-wrap{position:relative;margin-bottom:14px}
+.ob-input-prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--golddim);font-family:'JetBrains Mono',monospace;font-size:0.95rem;pointer-events:none}
+.ob-input{width:100%;background:var(--ink3);border:1px solid var(--line);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.95rem;outline:none;transition:border-color 0.2s,background 0.2s}
+.ob-input:focus{border-color:var(--golddim);background:var(--ink4)}
+.ob-input.has-prefix{padding-left:32px}
+.ob-input::placeholder{color:var(--faint)}
+.ob-label-small{font-size:0.78rem;color:var(--muted);margin-bottom:6px;display:block}
+.chip-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.chip{padding:8px 16px;border-radius:20px;border:1px solid var(--line2);background:transparent;color:var(--muted);font-size:0.84rem;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans TC',sans-serif}
+.chip:hover{border-color:var(--golddim);color:var(--text)}
+.chip.selected{border-color:var(--gold);background:rgba(212,168,67,0.12);color:var(--gold2)}
+.chip.multi-select.selected{background:rgba(62,207,178,0.1);border-color:var(--teal);color:var(--teal)}
+.ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.exp-row{display:grid;grid-template-columns:140px 1fr 130px 30px;gap:8px;align-items:center;margin-bottom:8px}
+.exp-row select,.exp-row input{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s}
+.exp-row input:focus,.exp-row select:focus{border-color:var(--golddim)}
+.exp-row select option{background:var(--ink3)}
+.btn-del{width:28px;height:28px;border-radius:6px;border:1px solid var(--rosedim);background:transparent;color:var(--rose);cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.btn-del:hover{background:var(--rosedim)}
+.btn-addrow{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px dashed var(--line2);border-radius:8px;background:transparent;color:var(--faint);font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans TC',sans-serif}
+.btn-addrow:hover{border-color:var(--golddim);color:var(--gold)}
+.debt-row{display:grid;grid-template-columns:1fr 130px 80px 110px 30px;gap:8px;align-items:center;margin-bottom:8px}
+.debt-row input,.debt-row select{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s}
+.debt-row input:focus,.debt-row select:focus{border-color:var(--golddim)}
+.ob-nav{padding:0 48px 32px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.ob-nav-left{display:flex;align-items:center;gap:10px}
+.btn-back{padding:11px 22px;background:transparent;border:1px solid var(--line2);border-radius:10px;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.2s}
+.btn-back:hover{border-color:var(--line);color:var(--text)}
+.btn-next{padding:12px 32px;background:var(--gold);border:none;border-radius:10px;color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:0.92rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:8px}
+.btn-next:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-finish{padding:12px 36px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:10px;color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.25s;box-shadow:0 4px 24px rgba(212,168,67,0.3)}
+.btn-finish:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(212,168,67,0.4)}
+.ob-progress-text{font-size:0.78rem;color:var(--faint)}
+#ob-summary{width:100%;max-width:680px;animation:slideIn 0.4s cubic-bezier(0.34,1.2,0.64,1)}
+.sum-section{background:var(--ink3);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:12px}
+.sum-title{font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--faint);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sum-title::before{content:'';display:block;width:16px;height:2px;background:var(--gold);border-radius:1px}
+.sum-row{display:flex;justify-content:space-between;align-items:baseline;font-size:0.85rem;padding:4px 0;border-bottom:1px solid rgba(44,53,80,0.5)}
+.sum-row:last-child{border-bottom:none}
+.sum-key{color:var(--muted)}.sum-val{font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text)}
+.sum-val.gold{color:var(--gold2)}.sum-val.rose{color:var(--rose)}.sum-val.teal{color:var(--teal)}
+#app{display:none}
+.sidebar{width:210px;min-width:210px;background:var(--ink2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:0;overflow:hidden}
+.sidebar-logo{padding:22px 20px 18px;font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.sidebar-logo-mark{font-size:1.2rem}
+.nav-group-label{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--faint);padding:16px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;font-size:0.84rem;color:var(--muted);border-left:2px solid transparent;transition:all 0.15s}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+.nav-item.active{color:var(--gold2);border-left-color:var(--gold);background:rgba(212,168,67,0.06)}
+.nav-icon{width:18px;text-align:center;font-size:0.95rem}
+.sidebar-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid var(--line)}
+.user-chip{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:all 0.2s}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--golddim),var(--gold));display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:600;color:var(--ink);flex-shrink:0}
+.user-name{font-size:0.8rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.main-wrap{flex:1;overflow-y:auto;background:var(--ink)}
+.page{display:none;padding:36px 40px;max-width:1020px}
+.page.active{display:block}
+.page-header{margin-bottom:28px}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--gold3);margin-bottom:4px}
+.page-sub{font-size:0.85rem;color:var(--muted)}
+.card{background:var(--ink2);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:18px}
+.card-label{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--faint);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card-label::before{content:'';display:block;width:14px;height:2px;background:var(--gold);border-radius:1px}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--ink2);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.stat-l{font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.stat-v{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:500}
+.stat-v.gold{color:var(--gold2)}.stat-v.teal{color:var(--teal)}.stat-v.rose{color:var(--rose)}.stat-v.sky{color:var(--sky)}
+.stat-s{font-size:0.68rem;color:var(--faint);margin-top:3px}
+.prog{margin-bottom:14px}
+.prog-head{display:flex;justify-content:space-between;margin-bottom:6px;align-items:baseline}
+.prog-name{font-size:0.86rem;color:var(--text)}
+.prog-info{font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted)}
+.prog-track{height:6px;background:var(--ink4);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(0.34,1.3,0.64,1)}
+.prog-fill.gold{background:linear-gradient(90deg,var(--golddim),var(--gold2))}
+.prog-fill.teal{background:linear-gradient(90deg,var(--tealdim),var(--teal))}
+.prog-fill.sky{background:linear-gradient(90deg,var(--skydim),var(--sky))}
+.prog-fill.rose{background:linear-gradient(90deg,var(--rosedim),var(--rose))}
+.plan-item{display:grid;grid-template-columns:32px 1fr auto;gap:14px;align-items:flex-start;padding:16px 0;border-bottom:1px solid rgba(44,53,80,0.6)}
+.plan-item:last-child{border-bottom:none}
+.plan-num{width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.plan-t{font-size:0.9rem;font-weight:500;margin-bottom:4px;color:var(--text)}
+.plan-d{font-size:0.8rem;color:var(--muted);line-height:1.65}
+.plan-amt{font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--gold2);white-space:nowrap;text-align:right;min-width:110px}
+.plan-amt small{display:block;font-size:0.68rem;color:var(--faint);margin-top:2px}
+.alert{border-radius:9px;padding:13px 16px;font-size:0.83rem;line-height:1.65;margin-bottom:14px;display:flex;gap:10px}
+.alert-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+.alert.warn{background:rgba(212,168,67,0.08);border:1px solid var(--golddim);color:var(--gold3)}
+.alert.ok{background:rgba(62,207,178,0.07);border:1px solid rgba(62,207,178,0.25);color:var(--teal)}
+.alert.info{background:rgba(79,157,232,0.07);border:1px solid rgba(79,157,232,0.25);color:var(--sky)}
+.alert.bad{background:var(--rosedim);border:1px solid rgba(224,91,106,0.3);color:var(--rose)}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:0.68rem;font-weight:500;letter-spacing:0.04em}
+.badge-gold{background:rgba(212,168,67,0.15);color:var(--gold)}.badge-teal{background:rgba(62,207,178,0.12);color:var(--teal)}
+.badge-rose{background:rgba(224,91,106,0.12);color:var(--rose)}.badge-sky{background:rgba(79,157,232,0.12);color:var(--sky)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chart-box{position:relative;height:210px}
+.ledger-header{display:grid;grid-template-columns:100px 1fr 130px 100px 32px;gap:8px;padding:0 0 10px;font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);margin-bottom:6px}
+.ledger-row{display:grid;grid-template-columns:100px 1fr 130px 100px 32px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(44,53,80,0.4)}
+.ledger-row input,.ledger-row select{background:var(--ink3);border:1px solid transparent;border-radius:6px;padding:6px 9px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.8rem;outline:none;width:100%;transition:border-color 0.2s}
+.ledger-row input:focus,.ledger-row select:focus{border-color:var(--golddim)}
+.l-income{color:var(--teal)}.l-expense{color:var(--rose)}
+.goal-card{background:var(--ink3);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.goal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.goal-ico{font-size:1.3rem}.goal-ttl{font-size:0.88rem;font-weight:500}
+.goal-sub{font-size:0.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inv-row{display:grid;grid-template-columns:32px 1fr 80px auto 110px;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid rgba(44,53,80,0.5)}
+.inv-row:last-child{border-bottom:none}
+.inv-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.btn-p{padding:11px 26px;background:var(--gold);border:none;border-radius:9px;color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px}
+.btn-p:hover{background:var(--gold2);transform:translateY(-1px)}
+.btn-s{padding:11px 20px;background:transparent;border:1px solid var(--line2);border-radius:9px;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-size:0.85rem;cursor:pointer;transition:all 0.2s}
+.btn-s:hover{border-color:var(--golddim);color:var(--gold)}
+.divider{border:none;border-top:1px solid var(--line);margin:18px 0}
+.field-label{font-size:0.75rem;color:var(--muted);margin-bottom:5px;display:block}
+.field-input{background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.88rem;outline:none;transition:border-color 0.2s;width:100%}
+.field-input:focus{border-color:var(--golddim)}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mode-btn{padding:5px 12px;border-radius:6px;font-size:0.75rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all 0.18s}
+.mode-btn.active{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:600}
+.mode-btn:hover:not(.active){border-color:var(--golddim);color:var(--gold)}
+.btn-sim{padding:5px 11px;border-radius:6px;font-size:0.73rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all 0.18s}
+.btn-sim:hover{border-color:var(--gold2);color:var(--gold2);background:rgba(212,168,67,0.08)}
+.computed-amt{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--teal);background:var(--tealdim);border-radius:6px;padding:9px 10px;text-align:right;border:1px solid rgba(62,207,178,0.2);white-space:nowrap}
+@media(max-width:700px){.stat-row{grid-template-columns:1fr 1fr}.two-col,.goal-grid,.form-grid{grid-template-columns:1fr}.sidebar{display:none}.ob-q{font-size:1.5rem}.ob-top,.ob-body,.ob-nav{padding-left:20px;padding-right:20px}}
+</style>
+
+<script>
+// ════════════════════════════════════════════════════
+//  ⚙️  SUPABASE 設定 — 填入你自己的值
+//  建立專案後在 Settings > API 找到
+// ════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://inbszlvdplcktufvyzml.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluYnN6bHZkcGxja3R1ZnZ5em1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjUwNzUsImV4cCI6MjA4Nzk0MTA3NX0.5GiWP8Ukqzf9XA0IfTZ3iE8Uf70c-ZEyb0Lo-BowA0w';
+
+// ════════════════════════════════════════════════════
+//  Supabase 初始化
+// ════════════════════════════════════════════════════
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let currentUser = null;
+
+// ── 登入模式切換 ──
+let emailMode = 'login'; // 'login' | 'register'
+function toggleMode() {
+  emailMode = emailMode === 'login' ? 'register' : 'login';
+  const btn = document.getElementById('email-btn');
+  const toggle = document.querySelector('.login-toggle');
+  if (emailMode === 'register') {
+    btn.textContent = '註冊新帳號';
+    toggle.innerHTML = '已有帳號？<span onclick="toggleMode()">點此切換</span>到登入模式';
+  } else {
+    btn.textContent = '登入 / 註冊';
+    toggle.innerHTML = '還沒有帳號？<span onclick="toggleMode()">點此切換</span>到註冊模式';
+  }
+}
+
+function setLoginMsg(msg, isErr) {
+  const el = document.getElementById('login-msg');
+  el.textContent = msg;
+  el.className = 'login-msg ' + (isErr ? 'err' : 'ok');
+}
+
+// ── Google OAuth 登入 ──
+async function signInWithGoogle() {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+  if (error) setLoginMsg('登入失敗：' + error.message, true);
+}
+
+// ── Email 登入 / 註冊 ──
+async function signInWithEmail() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { setLoginMsg('請填入 Email 和密碼', true); return; }
+
+  setLoginMsg('處理中…', false);
+  let result;
+  if (emailMode === 'register') {
+    result = await sb.auth.signUp({ email, password });
+    if (!result.error && result.data.user?.identities?.length === 0) {
+      setLoginMsg('此 Email 已註冊，請直接登入', true); return;
+    }
+    if (!result.error) { setLoginMsg('✓ 註冊成功！請查收驗證信後登入', false); return; }
+  } else {
+    result = await sb.auth.signInWithPassword({ email, password });
+  }
+  if (result.error) { setLoginMsg('錯誤：' + result.error.message, true); return; }
+  // onAuthStateChange will handle the rest
+}
+
+// ── 登出 ──
+async function signOut() {
+  if (!confirm('確定要登出嗎？')) return;
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('onboarding').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════
+//  資料存取層（Supabase Firestore-style）
+//  table: finance_data
+//  row:   (user_id, key, value)  ← Row Level Security
+// ════════════════════════════════════════════════════
+async function dbLoad(key) {
+  const { data, error } = await sb
+    .from('finance_data')
+    .select('value')
+    .eq('key', key)
+    .single();
+  if (error || !data) return null;
+  try { return JSON.parse(data.value); } catch { return null; }
+}
+
+async function dbSave(key, value) {
+  const { error } = await sb
+    .from('finance_data')
+    .upsert({ key, value: JSON.stringify(value) }, { onConflict: 'key' });
+  return !error;
+}
+
+async function dbLoadAll() {
+  const { data, error } = await sb
+    .from('finance_data')
+    .select('key, value');
+  if (error || !data) return {};
+  const result = {};
+  data.forEach(row => {
+    try { result[row.key] = JSON.parse(row.value); } catch {}
+  });
+  return result;
+}
+
+// ════════════════════════════════════════════════════
+//  自動存檔
+// ════════════════════════════════════════════════════
+let saveTimer = null;
+function scheduleSave() {
+  if (!currentUser) return;
+  clearTimeout(saveTimer);
+  setSaveStatus('saving');
+  saveTimer = setTimeout(doSave, 1800);
+}
+
+async function doSave() {
+  const payload = {
+    profile:  obData,
+    income:   { net: appState.incomeNet, spouse: appState.incomeSpouse, other: appState.incomeOther },
+    expenses: appState.expenses,
+    debts:    appState.debts,
+    goals:    appState.goals,
+    ledger:   appState.ledger,
+  };
+  const results = await Promise.all(
+    Object.entries(payload).map(([k, v]) => dbSave(k, v))
+  );
+  setSaveStatus(results.every(Boolean) ? 'ok' : 'err');
+}
+
+function setSaveStatus(state) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  if (state === 'saving') { el.textContent = '儲存中…'; el.style.color = 'var(--muted)'; }
+  else if (state === 'ok') {
+    const t = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+    el.textContent = '✓ 已儲存 ' + t;
+    el.style.color = 'var(--teal)';
+    setTimeout(() => { if(el) el.textContent = ''; }, 5000);
+  } else {
+    el.textContent = '⚠ 儲存失敗，請檢查網路';
+    el.style.color = 'var(--rose)';
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  Auth 狀態監聽：登入後載入資料
+// ════════════════════════════════════════════════════
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    currentUser = session.user;
+    document.getElementById('login-screen').style.display = 'none';
+    showLoading('正在載入你的財務資料…');
+    await loadUserData();
+    hideLoading();
+  } else if (event === 'SIGNED_OUT') {
+    currentUser = null;
+  }
+});
+
+async function loadUserData() {
+  const all = await dbLoadAll();
+
+  // Update sidebar
+  const email = currentUser.email || '';
+  const name = currentUser.user_metadata?.full_name || email.split('@')[0];
+  document.getElementById('sidebar-avatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('sidebar-name').textContent = name;
+  document.getElementById('sidebar-email').textContent = email;
+
+  if (all.profile && all.profile.name) {
+    // Returning user — load everything
+    obData = all.profile;
+    if (all.income) {
+      appState.incomeNet    = all.income.net    || 0;
+      appState.incomeSpouse = all.income.spouse || 0;
+      appState.incomeOther  = all.income.other  || 0;
+    }
+    appState.expenses = all.expenses || [];
+    appState.debts    = all.debts    || [];
+    appState.goals    = all.goals    || [];
+    appState.ledger   = all.ledger   || [];
+
+    const totalIncome = appState.incomeNet + appState.incomeSpouse + appState.incomeOther;
+    document.getElementById('dash-title').textContent = (obData.name ? obData.name + '的' : '') + '財務儀表板';
+    document.getElementById('dash-sub').textContent   = (obData.marital||'') + (obData.ages?' · '+obData.ages:'') + ' · 月收入 $' + totalIncome.toLocaleString();
+
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('onboarding').style.display = 'none';
+    initCharts();
+    renderAll();
+    initIncomeAdj();
+    recalculate();
+  } else {
+    // First time — show onboarding
+    document.getElementById('onboarding').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    renderObSlide();
+  }
+}
+
+function showLoading(msg) {
+  document.getElementById('loading-screen').style.display = 'flex';
+  document.getElementById('loading-msg').textContent = msg || '載入中…';
+}
+function hideLoading() {
+  document.getElementById('loading-screen').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════
+//  月份選單初始化
+// ════════════════════════════════════════════════════
+function initMonthSelect() {
+  const sel = document.getElementById('ledger-month');
+  if (!sel) return;
+  sel.innerHTML = '';
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.getFullYear() + '年 ' + (d.getMonth()+1) + '月';
+    const opt = document.createElement('option');
+    opt.value = label; opt.textContent = label;
+    sel.appendChild(opt);
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  原有 App 邏輯（完整保留）
+// ════════════════════════════════════════════════════
+const OB_TOTAL = 7;
+let obStep = 0;
+let obData = {name:'',marital:'',children:[],ages:'',incomeNet:'',incomeSpouse:'',incomeOther:'',expenses:[],debts:[],goals:[],emergencyFund:''};
+
+function obMakeStepDots() {
+  const c = document.getElementById('ob-step-dots'); c.innerHTML = '';
+  for (let i = 0; i < OB_TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'ob-step-dot' + (i < obStep ? ' done' : i === obStep ? ' active' : '');
+    c.appendChild(d);
+  }
+}
+
+const SLIDES = [
+  () => `<div class="ob-step-label">開始使用</div><div class="ob-q">歡迎使用理財助手 ◈</div><div class="ob-hint">我們先花 2 分鐘了解你的基本狀況，<br>系統將根據你的情況量身打造財務規劃。</div><div class="ob-input-wrap"><input class="ob-input" id="ob-name" placeholder="你希望怎麼稱呼你？" value="${obData.name}"></div>`,
+  () => `<div class="ob-step-label">家庭狀況</div><div class="ob-q">你目前的家庭狀況？</div><div class="ob-hint">這會影響支出估算與財務規劃方向</div><div class="chip-group" id="marital-chips">${['單身','已婚（無小孩）','已婚（有小孩）','單親'].map(v=>`<div class="chip${obData.marital===v?' selected':''}" onclick="selectChip('marital',this,'${v}')">${v}</div>`).join('')}</div><div id="children-section" style="${obData.marital==='已婚（有小孩）'||obData.marital==='單親'?'':'display:none'}"><label class="ob-label-small">孩子幾個？幾歲？</label><div class="ob-input-wrap"><input class="ob-input" id="ob-children" placeholder="例：4個孩子，6、4、2 歲和 3 個月大" value="${obData.ages}"></div></div>`,
+  () => `<div class="ob-step-label">收入狀況</div><div class="ob-q">你的每月收入是多少？</div><div class="ob-hint">填入稅後實領金額，不確定可以填大概值</div><div class="ob-grid"><div><label class="ob-label-small">本人月收入（稅後）</label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-income" type="number" placeholder="80000" value="${obData.incomeNet}"></div></div><div><label class="ob-label-small">配偶月收入（稅後，無則填 0）</label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-spouse" type="number" placeholder="0" value="${obData.incomeSpouse}"></div></div></div><div><label class="ob-label-small">其他收入（副業、租金等）</label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-other" type="number" placeholder="0" value="${obData.incomeOther}"></div></div>`,
+  () => `<div class="ob-step-label">固定支出</div><div class="ob-q">每月有哪些固定支出？</div><div class="ob-hint">填入每月必定會發生的支出（房租、電話費等）</div><div style="display:grid;grid-template-columns:140px 1fr 130px 30px;gap:8px;padding-bottom:8px;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint)"><span>類別</span><span>項目名稱</span><span>每月金額</span><span></span></div><div id="ob-exp-list"></div><button class="btn-addrow" onclick="obAddExp()">＋ 新增項目</button>`,
+  () => `<div class="ob-step-label">債務狀況</div><div class="ob-q">目前有哪些債務？</div><div class="ob-hint">若無債務可直接跳過</div><div style="display:grid;grid-template-columns:1fr 130px 80px 110px 30px;gap:8px;padding-bottom:8px;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--faint)"><span>名稱</span><span>總金額</span><span>年利率%</span><span>最低還款</span><span></span></div><div id="ob-debt-list"></div><button class="btn-addrow" onclick="obAddDebt()">＋ 新增債務</button><div style="margin-top:12px"><label class="ob-label-small">目前緊急預備金金額 $</label><div class="ob-input-wrap"><span class="ob-input-prefix">$</span><input class="ob-input has-prefix" id="ob-emergency" type="number" placeholder="0" value="${obData.emergencyFund}"></div></div>`,
+  () => `<div class="ob-step-label">財務目標</div><div class="ob-q">你最想達成哪些財務目標？</div><div class="ob-hint">可以多選，之後還可以新增或調整</div><div class="chip-group" id="goal-chips">${[['🏠 買房','買房'],['🚗 買車','買車'],['🎓 子女教育基金','教育基金'],['💰 百萬儲蓄','百萬儲蓄'],['🏦 緊急預備金','緊急預備金'],['📈 退休金','退休金'],['✈️ 旅遊基金','旅遊'],['🎯 其他','其他']].map(([label,val])=>`<div class="chip multi-select${obData.goals.includes(val)?' selected':''}" onclick="toggleGoal(this,'${val}')">${label}</div>`).join('')}`,
+  () => {
+    const totalIncome=(+obData.incomeNet||0)+(+obData.incomeSpouse||0)+(+obData.incomeOther||0);
+    const totalExp=obData.expenses.reduce((s,e)=>s+(+e.amount||0),0);
+    const totalDebt=obData.debts.reduce((s,d)=>s+(+d.amount||0),0);
+    return `<div id="ob-summary"><div class="ob-step-label">確認資料</div><div class="ob-q">確認你的財務狀況</div><div class="ob-hint">確認無誤後即可進入理財規劃</div><div class="sum-section"><div class="sum-title">基本資訊</div><div class="sum-row"><span class="sum-key">稱呼</span><span class="sum-val">${obData.name||'未填'}</span></div><div class="sum-row"><span class="sum-key">家庭狀況</span><span class="sum-val">${obData.marital||'未填'}${obData.ages?' · '+obData.ages:''}</span></div></div><div class="sum-section"><div class="sum-title">月收入</div>${[['本人',obData.incomeNet],[+obData.incomeSpouse>0?'配偶':null,obData.incomeSpouse],[+obData.incomeOther>0?'其他':null,obData.incomeOther]].filter(r=>r[0]).map(r=>`<div class="sum-row"><span class="sum-key">${r[0]}</span><span class="sum-val gold">$${Number(r[1]||0).toLocaleString()}</span></div>`).join('')}<div class="sum-row"><span class="sum-key">合計</span><span class="sum-val gold" style="font-size:1rem">$${totalIncome.toLocaleString()}</span></div></div><div class="sum-section"><div class="sum-title">固定支出（${obData.expenses.length} 項）</div>${obData.expenses.map(e=>`<div class="sum-row"><span class="sum-key">${e.cat} · ${e.name}</span><span class="sum-val rose">$${Number(e.amount||0).toLocaleString()}</span></div>`).join('')}<div class="sum-row"><span class="sum-key">合計</span><span class="sum-val rose" style="font-size:1rem">$${totalExp.toLocaleString()}</span></div></div>${totalDebt>0?`<div class="sum-section"><div class="sum-title">債務</div>${obData.debts.map(d=>`<div class="sum-row"><span class="sum-key">${d.name} ${d.rate}%</span><span class="sum-val rose">$${Number(d.amount||0).toLocaleString()}</span></div>`).join('')}</div>`:''}<div class="sum-section"><div class="sum-title">財務目標</div><div class="sum-row"><span class="sum-key">目標</span><span class="sum-val teal">${obData.goals.length>0?obData.goals.join('、'):'未選'}</span></div><div class="sum-row"><span class="sum-key">月可配置</span><span class="sum-val teal" style="font-size:1rem">$${(totalIncome-totalExp).toLocaleString()}</span></div></div></div>`;
+  }
+];
+
+function renderObSlide() {
+  obMakeStepDots();
+  document.getElementById('ob-body').innerHTML = `<div class="ob-slide">${SLIDES[obStep]()}</div>`;
+  document.getElementById('ob-progress-text').textContent = `${obStep+1} / ${OB_TOTAL}`;
+  document.getElementById('btn-back').style.display = obStep > 0 ? 'block' : 'none';
+  const navRight = document.getElementById('ob-nav-right');
+  if (obStep === OB_TOTAL - 1) {
+    navRight.innerHTML = `<button class="btn-finish" onclick="finishOnboarding()">開始理財規劃 ◈</button>`;
+  } else {
+    navRight.innerHTML = `<button class="btn-next" onclick="obNext()">繼續 →</button>`;
+  }
+  if (obStep === 3) { obData.expenses.forEach(e=>obAddExpFromData(e)); if(!obData.expenses.length) obAddExp(); }
+  if (obStep === 4) { obData.debts.forEach(d=>obAddDebtFromData(d)); }
+}
+
+function selectChip(key, el, val) {
+  document.querySelectorAll(`#${key}-chips .chip`).forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); obData[key] = val;
+  if (key==='marital') { const show=val==='已婚（有小孩）'||val==='單親'; document.getElementById('children-section').style.display=show?'':'none'; }
+}
+function toggleGoal(el, val) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) { if(!obData.goals.includes(val)) obData.goals.push(val); }
+  else { obData.goals = obData.goals.filter(g=>g!==val); }
+}
+
+const EXP_CATS = ['奉獻/慈善','居住','生活','通訊','交通','教育','醫療','保險','寵物','儲蓄','投資','其他'];
+function obAddExp() { const id=Date.now(); obData.expenses.push({id,cat:'其他',name:'',amount:''}); obAddExpFromData(obData.expenses[obData.expenses.length-1]); }
+function obAddExpFromData(e) {
+  const c=document.getElementById('ob-exp-list'); if(!c) return;
+  const row=document.createElement('div'); row.className='exp-row'; row.id='ob-exp-'+e.id;
+  row.innerHTML=`<select onchange="obUpdateExp(${e.id},'cat',this.value)" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.8rem;outline:none;font-family:'Noto Sans TC',sans-serif;width:100%">${EXP_CATS.map(c=>`<option${c===e.cat?' selected':''}>${c}</option>`).join('')}</select><input type="text" value="${e.name}" placeholder="項目名稱" onchange="obUpdateExp(${e.id},'name',this.value)"><input type="number" value="${e.amount}" placeholder="金額" oninput="obUpdateExp(${e.id},'amount',+this.value)"><button class="btn-del" onclick="obRemoveExp(${e.id})">✕</button>`;
+  c.appendChild(row);
+}
+function obUpdateExp(id,k,v){const e=obData.expenses.find(e=>e.id===id);if(e)e[k]=v;}
+function obRemoveExp(id){obData.expenses=obData.expenses.filter(e=>e.id!==id);document.getElementById('ob-exp-'+id)?.remove();}
+function obAddDebt(){const id=Date.now();obData.debts.push({id,name:'',amount:'',rate:'',minPay:''});obAddDebtFromData(obData.debts[obData.debts.length-1]);}
+function obAddDebtFromData(d){
+  const c=document.getElementById('ob-debt-list');if(!c)return;
+  const row=document.createElement('div');row.className='debt-row';row.id='ob-debt-'+d.id;
+  row.innerHTML=`<input type="text" value="${d.name}" placeholder="例：信用卡債" onchange="obUpdateDebt(${d.id},'name',this.value)"><input type="number" value="${d.amount}" placeholder="46000" oninput="obUpdateDebt(${d.id},'amount',+this.value)"><input type="number" value="${d.rate}" step="0.1" placeholder="10" oninput="obUpdateDebt(${d.id},'rate',+this.value)"><input type="number" value="${d.minPay}" placeholder="2300" oninput="obUpdateDebt(${d.id},'minPay',+this.value)"><button class="btn-del" onclick="obRemoveDebt(${d.id})">✕</button>`;
+  c.appendChild(row);
+}
+function obUpdateDebt(id,k,v){const d=obData.debts.find(d=>d.id===id);if(d)d[k]=v;}
+function obRemoveDebt(id){obData.debts=obData.debts.filter(d=>d.id!==id);document.getElementById('ob-debt-'+id)?.remove();}
+
+function obSaveCurrentStep(){
+  if(obStep===0)obData.name=document.getElementById('ob-name')?.value||'';
+  if(obStep===1)obData.ages=document.getElementById('ob-children')?.value||'';
+  if(obStep===2){obData.incomeNet=document.getElementById('ob-income')?.value||'0';obData.incomeSpouse=document.getElementById('ob-spouse')?.value||'0';obData.incomeOther=document.getElementById('ob-other')?.value||'0';}
+  if(obStep===4)obData.emergencyFund=document.getElementById('ob-emergency')?.value||'0';
+}
+function obNext(){obSaveCurrentStep();obStep=Math.min(obStep+1,OB_TOTAL-1);renderObSlide();}
+function obBack(){obSaveCurrentStep();obStep=Math.max(obStep-1,0);renderObSlide();}
+
+async function finishOnboarding(){
+  const goalMap={'緊急預備金':{icon:'🏦',target:Math.round((+obData.incomeNet+(+obData.incomeSpouse||0))*6),monthly:Math.round((+obData.incomeNet)*0.05)},'買房':{icon:'🏠',target:2000000,monthly:5000},'買車':{icon:'🚗',target:500000,monthly:2000},'教育基金':{icon:'🎓',target:1000000,monthly:2000},'百萬儲蓄':{icon:'💰',target:1000000,monthly:10000},'退休金':{icon:'📈',target:10000000,monthly:5000},'旅遊':{icon:'✈️',target:100000,monthly:3000},'其他':{icon:'🎯',target:500000,monthly:3000}};
+  appState.goals=obData.goals.map((g,i)=>({id:Date.now()+i,icon:goalMap[g]?.icon||'🎯',name:g,target:goalMap[g]?.target||500000,saved:g==='緊急預備金'?(+obData.emergencyFund||0):0,monthly:goalMap[g]?.monthly||3000}));
+  appState.expenses=obData.expenses.map(e=>({...e,id:e.id||Date.now()}));
+  appState.debts=obData.debts.map(d=>({...d,id:d.id||Date.now()}));
+  appState.incomeNet=+obData.incomeNet||0;appState.incomeSpouse=+obData.incomeSpouse||0;appState.incomeOther=+obData.incomeOther||0;
+  const email=currentUser?.email||'';const name=currentUser?.user_metadata?.full_name||obData.name||email.split('@')[0];
+  document.getElementById('sidebar-avatar').textContent=(name||'?').charAt(0).toUpperCase();
+  document.getElementById('sidebar-name').textContent=name;
+  document.getElementById('sidebar-email').textContent=email;
+  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;
+  document.getElementById('dash-title').textContent=(obData.name?obData.name+'的':'')+'財務儀表板';
+  document.getElementById('dash-sub').textContent=(obData.marital||'')+(obData.ages?' · '+obData.ages:'')+' · 月收入 $'+totalIncome.toLocaleString();
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('app').style.display='flex';
+  initCharts();renderAll();initIncomeAdj();recalculate();
+  await doSave(); // save to Supabase immediately
+}
+
+async function resetOnboarding(){
+  if(!confirm('確定要重新設定嗎？這會清除你的所有財務資料，無法復原。'))return;
+  // Clear Supabase data
+  const keys=['profile','income','expenses','debts','goals','ledger'];
+  await Promise.all(keys.map(k=>sb.from('finance_data').delete().eq('key',k)));
+  obStep=0;obData={name:'',marital:'',children:[],ages:'',incomeNet:'',incomeSpouse:'',incomeOther:'',expenses:[],debts:[],goals:[],emergencyFund:''};
+  appState={incomeNet:0,incomeSpouse:0,incomeOther:0,expenses:[],debts:[],goals:[],ledger:[]};
+  document.getElementById('app').style.display='none';
+  document.getElementById('onboarding').style.display='flex';
+  renderObSlide();
+}
+
+// ════════════════════════════════════════════════════
+//  App State & all original logic
+// ════════════════════════════════════════════════════
+let appState={incomeNet:0,incomeSpouse:0,incomeOther:0,expenses:[],debts:[],goals:[],ledger:[]};
+let chartExp,chartAlloc;
+let baseIncome={net:0,spouse:0,other:0};
+let expMode='fixed';
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const navItems=document.querySelectorAll('.nav-item');
+  if(p==='dashboard')navItems[0].classList.add('active');
+  else if(p==='expenses'){navItems[1].classList.add('active');initIncomeAdj();renderExpenses();}
+  else if(p==='debt')navItems[2].classList.add('active');
+  else if(p==='ledger')navItems[3].classList.add('active');
+  else if(p==='plan'){navItems[4].classList.add('active');renderPlan();}
+  else if(p==='goals'){navItems[5].classList.add('active');renderGoals();}
+  else if(p==='invest'){navItems[6].classList.add('active');renderInvest();}
+}
+
+function renderAll(){renderExpenses();renderDebts();renderGoals();renderLedger();initMonthSelect();}
+
+function initIncomeAdj(){
+  document.getElementById('adj-income').value=appState.incomeNet||'';
+  document.getElementById('adj-spouse').value=appState.incomeSpouse||'';
+  document.getElementById('adj-other').value=appState.incomeOther||'';
+  baseIncome={net:appState.incomeNet,spouse:appState.incomeSpouse,other:appState.incomeOther};
+  updateAdjTotal();
+}
+function adjustIncome(){
+  appState.incomeNet=+document.getElementById('adj-income').value||0;
+  appState.incomeSpouse=+document.getElementById('adj-spouse').value||0;
+  appState.incomeOther=+document.getElementById('adj-other').value||0;
+  baseIncome={net:appState.incomeNet,spouse:appState.incomeSpouse,other:appState.incomeOther};
+  updateAdjTotal();recalculate();renderExpenses();
+}
+function updateAdjTotal(){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;document.getElementById('adj-total').textContent='$'+t.toLocaleString();}
+function simIncome(factor){
+  const sn=Math.round(baseIncome.net*factor),ss=Math.round(baseIncome.spouse*factor),so=Math.round(baseIncome.other*factor);
+  document.getElementById('adj-income').value=sn||'';document.getElementById('adj-spouse').value=ss||'';document.getElementById('adj-other').value=so||'';
+  appState.incomeNet=sn;appState.incomeSpouse=ss;appState.incomeOther=so;
+  updateAdjTotal();recalculate();renderExpenses();
+}
+function setExpMode(mode){expMode=mode;document.getElementById('mode-fixed-btn').classList.toggle('active',mode==='fixed');document.getElementById('mode-ratio-btn').classList.toggle('active',mode==='ratio');renderExpenses();}
+function getExpAmount(e){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;if(e.useRatio&&e.ratio>0)return Math.round(t*e.ratio/100);return +e.amount||0;}
+
+function renderExpenses(){
+  const c=document.getElementById('exp-list'),header=document.getElementById('exp-list-header');
+  if(!c)return;c.innerHTML='';
+  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;
+  if(expMode==='fixed'){header.style.gridTemplateColumns='130px 1fr 140px 30px';header.innerHTML='<span>類別</span><span>項目名稱</span><span>每月金額</span><span></span>';}
+  else{header.style.gridTemplateColumns='130px 1fr 60px 80px 110px 30px';header.innerHTML='<span>類別</span><span>項目名稱</span><span>模式</span><span>比例%</span><span>計算金額</span><span></span>';}
+  appState.expenses.forEach(e=>{
+    const row=document.createElement('div');row.id='exp-'+e.id;
+    const computedAmt=getExpAmount(e);
+    const sel=EXP_CATS.map(c=>`<option${c===e.cat?' selected':''}>${c}</option>`).join('');
+    const is='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s';
+    const ss='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.8rem;outline:none;font-family:"Noto Sans TC",sans-serif;width:100%';
+    if(expMode==='fixed'){
+      row.style.cssText='display:grid;grid-template-columns:130px 1fr 140px 30px;gap:8px;align-items:center;margin-bottom:8px';
+      row.innerHTML=`<select onchange="updateExp(${e.id},'cat',this.value)" style="${ss}">${sel}</select><input type="text" value="${e.name||''}" placeholder="名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is}"><input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is}"><button class="btn-del" onclick="removeExp(${e.id})">✕</button>`;
+    } else {
+      row.style.cssText='display:grid;grid-template-columns:130px 1fr 60px 80px 110px 30px;gap:8px;align-items:center;margin-bottom:8px';
+      const useR=e.useRatio?true:false;
+      row.innerHTML=`<select onchange="updateExp(${e.id},'cat',this.value)" style="${ss}">${sel}</select><input type="text" value="${e.name||''}" placeholder="名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is}"><button onclick="toggleRatio(${e.id})" style="padding:5px 6px;border-radius:6px;border:1px solid ${useR?'var(--sky)':'var(--line2)'};background:${useR?'rgba(79,157,232,0.15)':'transparent'};color:${useR?'var(--sky)':'var(--muted)'};font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">${useR?'比例':'固定'}</button>${useR?`<div style="position:relative"><input type="number" value="${e.ratio||''}" placeholder="10" step="0.1" min="0" max="100" oninput="updateExp(${e.id},'ratio',+this.value)" style="${is};padding-right:22px"><span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--sky);font-size:0.75rem;pointer-events:none">%</span></div>`:`<input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is}">`}<div class="computed-amt" id="comp-${e.id}">$${computedAmt.toLocaleString()}${useR&&totalIncome>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${totalIncome.toLocaleString()}</div>`:''}</div><button class="btn-del" onclick="removeExp(${e.id})">✕</button>`;
+    }
+    c.appendChild(row);
+  });
+  recalculate();
+}
+function toggleRatio(id){const e=appState.expenses.find(e=>e.id===id);if(!e)return;e.useRatio=!e.useRatio;if(e.useRatio&&!e.ratio){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;e.ratio=t>0?+((e.amount/t*100).toFixed(1)):10;}renderExpenses();}
+function addExpRow(){appState.expenses.push({id:Date.now(),cat:'其他',name:'',amount:0,useRatio:false,ratio:0});renderExpenses();}
+function removeExp(id){appState.expenses=appState.expenses.filter(e=>e.id!==id);renderExpenses();}
+function updateExp(id,k,v){const e=appState.expenses.find(e=>e.id===id);if(e){e[k]=v;if(k==='ratio'||k==='amount'){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;const a=getExpAmount(e);const comp=document.getElementById('comp-'+id);if(comp)comp.innerHTML='$'+a.toLocaleString()+(e.useRatio&&t>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${t.toLocaleString()}</div>`:'');}recalculate();scheduleSave();}}
+
+function renderDebts(){
+  const c=document.getElementById('debt-list');c.innerHTML='';
+  if(!appState.debts.length){c.innerHTML='<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">目前無債務記錄 🎉</div>';document.getElementById('debt-strategy').style.display='none';return;}
+  appState.debts.forEach(d=>{const row=document.createElement('div');row.className='debt-row';row.id='debt-'+d.id;row.innerHTML=`<input type="text" value="${d.name||''}" placeholder="例：信用卡債" onchange="updateDebt(${d.id},'name',this.value)"><input type="number" value="${d.amount||''}" placeholder="46000" oninput="updateDebt(${d.id},'amount',+this.value)"><input type="number" value="${d.rate||''}" step="0.1" placeholder="10" oninput="updateDebt(${d.id},'rate',+this.value)"><input type="number" value="${d.minPay||''}" placeholder="2300" oninput="updateDebt(${d.id},'minPay',+this.value)"><button class="btn-del" onclick="removeDebt(${d.id})">✕</button>`;c.appendChild(row);});
+  document.getElementById('debt-strategy').style.display='block';renderDebtStrategy();
+}
+function addDebtRow(){appState.debts.push({id:Date.now(),name:'',amount:0,rate:5,minPay:0});renderDebts();}
+function removeDebt(id){appState.debts=appState.debts.filter(d=>d.id!==id);renderDebts();scheduleSave();}
+function updateDebt(id,k,v){const d=appState.debts.find(d=>d.id===id);if(d){d[k]=v;renderDebtStrategy();scheduleSave();}}
+function renderDebtStrategy(){
+  const debts=[...appState.debts].sort((a,b)=>b.rate-a.rate);
+  let h=`<div class="alert info"><span class="alert-icon">💡</span><div><strong>雪崩法（Avalanche）：</strong>優先清償利率最高的債務，節省最多總利息。</div></div>`;
+  debts.forEach((d,i)=>{const mi=d.amount>0&&d.rate>0?(d.amount*d.rate/100/12).toFixed(0):0;const months=d.minPay>0&&d.minPay>d.amount*d.rate/100/12?Math.ceil(d.amount/(d.minPay-d.amount*d.rate/100/12)):'—';h+=`<div class="plan-item"><div class="plan-num">${i+1}</div><div class="plan-body"><div class="plan-t">${d.name||'未命名'} <span class="badge badge-rose">${d.rate}% 年利率</span></div><div class="plan-d">每月利息約 $${Number(mi).toLocaleString()} · 最低還款 $${(d.minPay||0).toLocaleString()}</div></div><div class="plan-amt">$${(d.amount||0).toLocaleString()}<small>約 ${months} 月清償</small></div></div>`;});
+  document.getElementById('debt-strategy-body').innerHTML=h;
+}
+
+function renderLedger(){
+  const c=document.getElementById('ledger-list');c.innerHTML='';
+  if(!appState.ledger.length){c.innerHTML='<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">尚無記錄</div>';}
+  appState.ledger.forEach(e=>{const row=document.createElement('div');row.className='ledger-row';row.id='led-'+e.id;row.innerHTML=`<input type="date" value="${e.date||''}" onchange="updateLed(${e.id},'date',this.value)"><input type="text" value="${e.name||''}" placeholder="項目" onchange="updateLed(${e.id},'name',this.value)"><input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateLed(${e.id},'amount',+this.value)"><select onchange="updateLed(${e.id},'type',this.value)"><option${e.type==='expense'?' selected':''} value="expense">支出</option><option${e.type==='income'?' selected':''} value="income">收入</option></select><button class="btn-del" onclick="removeLed(${e.id})">✕</button>`;c.appendChild(row);});
+  updateLedgerTotals();
+}
+function addLedgerRow(){const today=new Date().toISOString().split('T')[0];appState.ledger.push({id:Date.now(),date:today,name:'',amount:0,type:'expense'});renderLedger();}
+function removeLed(id){appState.ledger=appState.ledger.filter(e=>e.id!==id);renderLedger();scheduleSave();}
+function updateLed(id,k,v){const e=appState.ledger.find(e=>e.id===id);if(e){e[k]=v;updateLedgerTotals();scheduleSave();}}
+function updateLedgerTotals(){
+  const ti=appState.ledger.filter(e=>e.type==='income').reduce((s,e)=>s+(+e.amount||0),0);
+  const to=appState.ledger.filter(e=>e.type==='expense').reduce((s,e)=>s+(+e.amount||0),0);
+  document.getElementById('l-total-in').textContent='$'+ti.toLocaleString();
+  document.getElementById('l-total-out').textContent='$'+to.toLocaleString();
+  const net=ti-to;const el=document.getElementById('l-net');el.textContent='$'+net.toLocaleString();el.style.color=net>=0?'var(--teal)':'var(--rose)';
+}
+
+function renderGoals(){
+  const c=document.getElementById('goals-grid');c.innerHTML='';
+  appState.goals.forEach(g=>{const pct=Math.min(100,g.target>0?Math.round(g.saved/g.target*100):0);const col=pct>=75?'teal':pct>=40?'gold':'sky';const months=g.monthly>0?Math.ceil((g.target-g.saved)/g.monthly):'∞';const card=document.createElement('div');card.className='goal-card';card.innerHTML=`<div class="goal-head"><span class="goal-ico">${g.icon}</span><div style="flex:1"><div class="goal-ttl">${g.name}</div><div class="goal-sub">目標 $${g.target.toLocaleString()}</div></div><button class="btn-del" onclick="removeGoal(${g.id})">✕</button></div><div class="prog"><div class="prog-head"><span class="prog-name" style="font-size:0.78rem">$${g.saved.toLocaleString()} / $${g.target.toLocaleString()}</span><span class="prog-info">${pct}%</span></div><div class="prog-track"><div class="prog-fill ${col}" style="width:${pct}%"></div></div></div><div style="font-size:0.75rem;color:var(--faint);margin-bottom:10px">每月 $${g.monthly.toLocaleString()} → 預計 ${months} 個月</div><div style="display:flex;gap:8px"><input type="number" placeholder="更新已存金額" class="field-input" style="font-size:0.78rem;padding:6px 10px" onchange="updateGoalSaved(${g.id},+this.value)"><button class="btn-s" style="padding:6px 12px;font-size:0.75rem;white-space:nowrap" onclick="updateGoalSaved(${g.id},(appState.goals.find(g=>g.id===${g.id})?.saved||0)+${g.monthly})">＋月存</button></div>`;c.appendChild(card);});
+  updateDashGoals();
+}
+function addGoal(){const name=document.getElementById('g-name').value;const target=+document.getElementById('g-target').value;if(!name||!target)return;appState.goals.push({id:Date.now(),icon:document.getElementById('g-icon').value,name,target,saved:+document.getElementById('g-saved').value||0,monthly:+document.getElementById('g-monthly').value||0});['g-name','g-target','g-saved','g-monthly'].forEach(id=>document.getElementById(id).value='');renderGoals();scheduleSave();}
+function removeGoal(id){appState.goals=appState.goals.filter(g=>g.id!==id);renderGoals();scheduleSave();}
+function updateGoalSaved(id,val){const g=appState.goals.find(g=>g.id===id);if(g){g.saved=Math.max(0,Math.min(g.target,val));renderGoals();scheduleSave();}}
+
+function recalculate(){
+  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;
+  const totalExp=appState.expenses.reduce((s,e)=>s+getExpAmount(e),0);
+  const balance=totalIncome-totalExp;
+  const totalDebt=appState.debts.reduce((s,d)=>s+(+d.amount||0),0);
+  const ratio=totalIncome>0?totalExp/totalIncome:0;
+  const ratioSum=appState.expenses.filter(e=>e.useRatio).reduce((s,e)=>s+getExpAmount(e),0);
+  document.getElementById('s-income').textContent='$'+totalIncome.toLocaleString();
+  document.getElementById('s-expense').textContent='$'+totalExp.toLocaleString();
+  document.getElementById('s-balance').textContent='$'+balance.toLocaleString();
+  document.getElementById('s-balance').className='stat-v '+(balance>=0?'teal':'rose');
+  let score=60;if(ratio<0.5)score+=18;else if(ratio<0.65)score+=10;else if(ratio>0.8)score-=15;if(totalDebt===0)score+=15;else if(totalDebt<50000)score+=5;else if(totalDebt>200000)score-=15;const ef=appState.goals.find(g=>g.name.includes('緊急'));if(ef&&ef.saved>=ef.target*0.5)score+=10;else if(ef&&ef.saved>0)score+=5;score=Math.max(10,Math.min(100,score));
+  const scoreEl=document.getElementById('s-score');scoreEl.textContent=score;scoreEl.className='stat-v '+(score>=75?'teal':score>=55?'sky':'rose');
+  if(document.getElementById('exp-total-v'))document.getElementById('exp-total-v').textContent='$'+totalExp.toLocaleString();
+  if(document.getElementById('exp-ratio-sum-v'))document.getElementById('exp-ratio-sum-v').textContent='$'+ratioSum.toLocaleString();
+  if(document.getElementById('adj-total'))document.getElementById('adj-total').textContent='$'+totalIncome.toLocaleString();
+  if(document.getElementById('exp-ratio-v')){const el=document.getElementById('exp-ratio-v');el.textContent=(ratio*100).toFixed(1)+'%';el.className='stat-v '+(ratio<0.65?'teal':ratio<0.8?'gold':'rose');}
+  if(document.getElementById('exp-remain-v'))document.getElementById('exp-remain-v').textContent='$'+balance.toLocaleString();
+  renderBreakdownBar(totalIncome,totalExp);updateCharts();updateDashGoals();
+  scheduleSave();
+}
+
+const BAR_COLORS=['#d4a843','#3ecfb2','#4f9de8','#e05b6a','#a06be0','#e0a043','#5ce0c9','#c84a8e','#82c858'];
+function renderBreakdownBar(totalIncome,totalExp){
+  const bar=document.getElementById('exp-breakdown-bar'),legend=document.getElementById('exp-breakdown-legend');
+  if(!bar||!legend||totalIncome===0)return;
+  const catMap={};appState.expenses.forEach(e=>{const amt=getExpAmount(e);catMap[e.cat]=(catMap[e.cat]||0)+amt;});
+  const remaining=Math.max(0,totalIncome-totalExp);if(remaining>0)catMap['可支配']=remaining;
+  const cats=Object.keys(catMap);
+  bar.innerHTML=cats.map((cat,i)=>{const pct=(catMap[cat]/totalIncome*100).toFixed(1);return `<div style="flex:${pct};background:${BAR_COLORS[i%BAR_COLORS.length]};min-width:${pct>0.5?'2px':'0'}" title="${cat}: ${pct}%"></div>`;}).join('');
+  legend.innerHTML=cats.map((cat,i)=>`<div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;color:var(--muted)"><div style="width:8px;height:8px;border-radius:2px;background:${BAR_COLORS[i%BAR_COLORS.length]};flex-shrink:0"></div><span>${cat}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--text)">${(catMap[cat]/totalIncome*100).toFixed(1)}%</span></div>`).join('');
+}
+
+function updateDashGoals(){
+  const c=document.getElementById('dash-goals');if(!c)return;
+  if(!appState.goals.length){c.innerHTML='<div style="color:var(--faint);font-size:0.83rem">尚無目標，請前往「目標追蹤」新增</div>';return;}
+  c.innerHTML=appState.goals.map(g=>{const pct=Math.min(100,g.target>0?Math.round(g.saved/g.target*100):0);const col=pct>=75?'teal':pct>=40?'gold':'sky';return `<div class="prog"><div class="prog-head"><span class="prog-name">${g.icon} ${g.name}</span><span class="prog-info">$${g.saved.toLocaleString()} / $${g.target.toLocaleString()} (${pct}%)</span></div><div class="prog-track"><div class="prog-fill ${col}" style="width:${pct}%"></div></div></div>`;}).join('');
+}
+
+function initCharts(){
+  chartExp=new Chart(document.getElementById('chart-exp').getContext('2d'),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:['#d4a843','#3ecfb2','#4f9de8','#e05b6a','#a06be0','#e0a043','#5ce0c9','#e05ca8'],borderWidth:0,hoverOffset:6}]},options:{cutout:'66%',plugins:{legend:{labels:{color:'#7a849c',font:{family:'JetBrains Mono',size:10},padding:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: $${ctx.raw.toLocaleString()}`}}}}});
+  chartAlloc=new Chart(document.getElementById('chart-alloc').getContext('2d'),{type:'bar',data:{labels:['必要支出','儲蓄','投資','還債','彈性'],datasets:[{label:'建議%',data:[50,15,15,10,10],backgroundColor:'rgba(212,168,67,0.25)',borderColor:'rgba(212,168,67,0.5)',borderWidth:1,borderRadius:4},{label:'實際%',data:[0,0,0,0,0],backgroundColor:'rgba(62,207,178,0.25)',borderColor:'rgba(62,207,178,0.5)',borderWidth:1,borderRadius:4}]},options:{scales:{x:{ticks:{color:'#7a849c',font:{size:10,family:'Noto Sans TC'}},grid:{color:'rgba(44,53,80,0.5)'}},y:{ticks:{color:'#7a849c',callback:v=>v+'%'},grid:{color:'rgba(44,53,80,0.5)'},max:65}},plugins:{legend:{labels:{color:'#7a849c',font:{family:'JetBrains Mono',size:10},padding:10}}}}});
+}
+
+function updateCharts(){
+  if(!chartExp||!chartAlloc)return;
+  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;if(!totalIncome)return;
+  const catMap={};appState.expenses.forEach(e=>{const amt=getExpAmount(e);catMap[e.cat]=(catMap[e.cat]||0)+amt;});
+  chartExp.data.labels=Object.keys(catMap);chartExp.data.datasets[0].data=Object.values(catMap);chartExp.update();
+  const necessary=appState.expenses.filter(e=>!['投資','儲蓄','奉獻/慈善'].includes(e.cat)).reduce((s,e)=>s+getExpAmount(e),0);
+  const savings=appState.expenses.filter(e=>e.cat==='儲蓄').reduce((s,e)=>s+getExpAmount(e),0);
+  const invest=appState.expenses.filter(e=>e.cat==='投資').reduce((s,e)=>s+getExpAmount(e),0);
+  const debtPay=appState.debts.reduce((s,d)=>s+(+d.minPay||0),0);
+  const remaining=Math.max(0,totalIncome-necessary-savings-invest-debtPay);
+  chartAlloc.data.datasets[1].data=[+(necessary/totalIncome*100).toFixed(1),+(savings/totalIncome*100).toFixed(1),+(invest/totalIncome*100).toFixed(1),+(debtPay/totalIncome*100).toFixed(1),+(remaining/totalIncome*100).toFixed(1)];
+  chartAlloc.update();
+}
+
+function renderPlan(){
+  const s=appState,totalIncome=s.incomeNet+s.incomeSpouse+s.incomeOther;
+  const totalExp=s.expenses.reduce((sum,e)=>sum+getExpAmount(e),0);
+  const balance=totalIncome-totalExp,totalDebt=s.debts.reduce((sum,d)=>sum+(+d.amount||0),0);
+  const ratio=totalIncome>0?totalExp/totalIncome:0;
+  if(!totalIncome){document.getElementById('plan-body').innerHTML='<div class="alert warn"><span class="alert-icon">⚠️</span>請先完成設定精靈填寫收入資料。</div>';return;}
+  const hasChildren=obData.marital?.includes('小孩')||obData.marital==='單親';
+  const tithe=s.expenses.find(e=>e.name.includes('奉獻'))?getExpAmount(s.expenses.find(e=>e.name.includes('奉獻'))):0;
+  const savingsMonthly=s.expenses.filter(e=>e.cat==='儲蓄').reduce((s,e)=>s+getExpAmount(e),0);
+  const investMonthly=s.expenses.filter(e=>e.cat==='投資').reduce((s,e)=>s+getExpAmount(e),0);
+  const debtMinPay=s.debts.reduce((sum,d)=>sum+(+d.minPay||0),0);
+  const extraDebt=totalDebt>0?Math.min(balance*0.25,Math.round(totalIncome*0.05)):0;
+  const suggestInvest=Math.round(totalIncome*0.15);
+  const suggestFlex=Math.max(0,balance-extraDebt-suggestInvest);
+  const emergGoal=s.goals.find(g=>g.name.includes('緊急'));
+  let html='';
+  if(ratio>0.8)html+=`<div class="alert bad"><span class="alert-icon">🚨</span><div><strong>警示：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，超出安全線，請立即縮減非必要支出。</div></div>`;
+  else if(ratio>0.65)html+=`<div class="alert warn"><span class="alert-icon">⚠️</span><div><strong>支出偏高：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，建議控制在 65% 以內。</div></div>`;
+  else html+=`<div class="alert ok"><span class="alert-icon">✅</span><div><strong>財務結構健康：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，繼續保持！</div></div>`;
+  html+=`<div class="card"><div class="card-label">每月資金分配建議</div>`;
+  const steps=[];
+  if(tithe>0)steps.push({title:'什一奉獻 / 慈善',badge:'badge-gold',desc:'優先履行奉獻，建議設定自動轉帳，每月固定執行。',amt:tithe,sub:'月收入10%'});
+  steps.push({title:'緊急預備金',badge:'badge-sky',desc:`目標：月支出 ×6 = $${(totalIncome*6).toLocaleString()}。${emergGoal?`目前已存 $${emergGoal.saved.toLocaleString()}，`:''}存放於高利活存或貨幣型基金。`,amt:savingsMonthly||Math.round(totalIncome*0.08),sub:'每月投入'});
+  if(totalDebt>0){const hd=s.debts.reduce((max,d)=>(+d.rate>+max.rate?d:max),{rate:0});steps.push({title:'加速清償債務',badge:'badge-rose',desc:`採雪崩法，優先清償 ${hd.name||'高利率債務'}（${hd.rate}%）。在最低還款外每月額外投入。`,amt:debtMinPay+extraDebt,sub:`含最低還款 $${debtMinPay.toLocaleString()}`});}
+  steps.push({title:'長期投資',badge:'badge-teal',desc:`穩健成長：0050 / 0056 定期定額為核心。${obData.marital?.includes('婚')?'個股控制在 20% 以內。':'時間是最大複利引擎。'}`,amt:investMonthly||suggestInvest,sub:'長期定期定額'});
+  if(hasChildren){const eduGoal=s.goals.find(g=>g.name.includes('教育'));steps.push({title:'孩子教育基金',badge:'badge-gold',desc:`${obData.ages?'孩子年齡：'+obData.ages+'。':''}越早開始越好，可配置至高股息 ETF 滾入再投資。`,amt:eduGoal?.monthly||2000,sub:'每月專款儲備'});}
+  steps.push({title:'彈性生活費',badge:'badge-sky',desc:'剩餘金額用於飲食、娛樂、醫療等。建議每月記帳追蹤。',amt:Math.max(0,suggestFlex),sub:'含飲食/娛樂'});
+  steps.forEach((s,i)=>{html+=`<div class="plan-item"><div class="plan-num">${i+1}</div><div class="plan-body"><div class="plan-t">${s.title} <span class="badge ${s.badge}">${s.badge.replace('badge-','')}</span></div><div class="plan-d">${s.desc}</div></div><div class="plan-amt">$${(s.amt||0).toLocaleString()}<small>${s.sub}</small></div></div>`;});
+  html+='</div>';
+  if(obData.goals?.includes('買房')){html+=`<div class="card"><div class="card-label">買房規劃路線</div><div class="alert info"><span class="alert-icon">🏠</span><div><strong>建議順序：</strong>先清除高利率債務 → 建立緊急預備金 → 開始存頭期款<br>頭期款建議房價 20-30%。房貸月付不超過月收入 35%，即 <strong>$${Math.round(totalIncome*0.35).toLocaleString()}/月</strong>。</div></div></div>`;}
+  document.getElementById('plan-body').innerHTML=html;
+}
+
+function renderInvest(){
+  const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;
+  const investBudget=appState.expenses.find(e=>e.cat==='投資')?getExpAmount(appState.expenses.find(e=>e.cat==='投資')):Math.round(totalIncome*0.15);
+  const rows=[{color:'#d4a843',name:'台灣50 (0050)',tag:'核心配置',pct:50,desc:'追蹤台灣市值最大50家公司，費用率低，定期定額為最佳策略。'},{color:'#3ecfb2',name:'元大高股息 (0056)',tag:'收益穩定',pct:25,desc:'高股息策略，股息可再投入複利增長，適合長期家庭儲備。'},{color:'#4f9de8',name:'全球ETF (VT/VOO)',tag:'國際分散',pct:15,desc:'分散至全球市場，降低單一國家風險，可用複委託投入。'},{color:'#a06be0',name:'現金 / 貨幣基金',tag:'流動性',pct:10,desc:'保留部分流動資金，應對突發支出，存放高利活存。'}];
+  let h=`<div class="alert info"><span class="alert-icon">📌</span>以下建議基於穩健成長型策略，僅供參考，非專業投資建議。</div><div class="card"><div class="card-label">每月投資配置（預算 $${investBudget.toLocaleString()}）</div>`;
+  rows.forEach(r=>{const amt=Math.round(investBudget*r.pct/100);h+=`<div class="inv-row"><div class="inv-dot" style="background:${r.color}"></div><div><div style="font-size:0.88rem;font-weight:500;margin-bottom:3px">${r.name} <span class="badge badge-gold">${r.tag}</span></div><div style="font-size:0.78rem;color:var(--muted)">${r.desc}</div></div><div style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;color:var(--gold2);white-space:nowrap">${r.pct}%</div><div style="font-family:'JetBrains Mono',monospace;font-size:0.95rem;color:var(--teal);white-space:nowrap;text-align:right">$${amt.toLocaleString()}</div></div>`;});
+  h+=`</div><div class="two-col"><div class="card"><div class="card-label">核心原則</div><div class="alert ok"><span class="alert-icon">📅</span><div><strong>定期定額：</strong>每月固定日期自動扣款，不猜市場高低點。</div></div>${appState.debts.length>0?`<div class="alert warn"><span class="alert-icon">⚡</span><div><strong>債務優先：</strong>若債務利率（${Math.max(...appState.debts.map(d=>+d.rate||0))}%）高於投資預期報酬，優先還債。</div></div>`:''}</div><div class="card"><div class="card-label">複利效果（假設年報酬 7%）</div>`+[1,3,5,10].map(y=>{const amt=Math.round(investBudget*12*((Math.pow(1.07,y)-1)/0.07));return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(44,53,80,0.4);font-size:0.82rem"><span style="color:var(--muted)">'+y+' 年後</span><span style="font-family:JetBrains Mono,monospace;color:var(--teal)">$'+amt.toLocaleString()+'</span></div>';}).join('')+'</div></div>';
+  document.getElementById('invest-body').innerHTML=h;
+}
+
+// ── INIT: check if already logged in ──
+initMonthSelect();
+sb.auth.getSession().then(({data:{session}})=>{
+  if(!session){
+    // Not logged in, show login screen
+    document.getElementById('login-screen').style.display='flex';
+  }
+  // If logged in, onAuthStateChange will handle it
+});
+</script>
+</body>
+</html>
