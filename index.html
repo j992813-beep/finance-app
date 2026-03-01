@@ -604,7 +604,11 @@ async function dbLoad(key) {
 async function dbSave(key, value) {
   const { error } = await sb
     .from('finance_data')
-    .upsert({ key, value: JSON.stringify(value) }, { onConflict: 'key' });
+    .upsert(
+      { user_id: currentUser.id, key, value: JSON.stringify(value) },
+      { onConflict: 'user_id,key' }
+    );
+  if (error) console.error('dbSave error:', error);
   return !error;
 }
 
@@ -669,7 +673,15 @@ sb.auth.onAuthStateChange(async (event, session) => {
     currentUser = session.user;
     document.getElementById('login-screen').style.display = 'none';
     showLoading('正在載入你的財務資料…');
-    await loadUserData();
+    try {
+      await loadUserData();
+    } catch(e) {
+      console.error('[理財助手] loadUserData error:', e);
+      // Still hide loading and show onboarding so user isn't stuck
+      document.getElementById('onboarding').style.display = 'flex';
+      document.getElementById('app').style.display = 'none';
+      renderObSlide();
+    }
     hideLoading();
   } else if (event === 'SIGNED_OUT') {
     currentUser = null;
@@ -677,7 +689,13 @@ sb.auth.onAuthStateChange(async (event, session) => {
 });
 
 async function loadUserData() {
-  const all = await dbLoadAll();
+  let all = {};
+  try {
+    all = await dbLoadAll();
+    console.log('[理財助手] 載入資料 keys:', Object.keys(all));
+  } catch(e) {
+    console.error('[理財助手] 載入失敗:', e);
+  }
 
   // Update sidebar
   const email = currentUser.email || '';
