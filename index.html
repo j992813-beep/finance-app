@@ -2,13 +2,12 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://inbszlvdplcktufvyzml.supabase.co wss://inbszlvdplcktufvyzml.supabase.co; img-src 'self' data:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>理財助手</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 
 <style>
 /* ══ SUPABASE CONFIG NOTICE ══ */
@@ -138,23 +137,22 @@
     <div class="login-logo"><span class="login-mark">◈</span> 理財助手</div>
     <div class="login-tagline">個人財務規劃，資料加密儲存<br>每個帳號完全獨立，無法互相查看</div>
 
-    <!-- Google OAuth -->
     <button class="btn-google" onclick="signInWithGoogle()">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       使用 Google 帳號登入
     </button>
 
-    <div class="login-divider"><span>或用 Email</span></div>
+    <div class="login-divider"><span>或用 Email 登入</span></div>
 
-    <div class="login-email-section" id="email-section">
-      <input class="login-input" type="email" id="login-email" placeholder="your@email.com">
-      <input class="login-input" type="password" id="login-password" placeholder="密碼（至少 6 位）">
-      <button class="btn-email-login" id="email-btn" onclick="signInWithEmail()">登入 / 註冊</button>
-      <div class="login-toggle">還沒有帳號？<span onclick="toggleMode()">點此切換</span>到註冊模式</div>
+    <div id="email-section">
+      <input class="login-input" type="email" id="login-email" placeholder="your@email.com" autocomplete="email">
+      <input class="login-input" type="password" id="login-password" placeholder="密碼（至少 6 位）" autocomplete="current-password">
+      <button class="btn-email-login" id="email-btn" onclick="signInWithEmail()">登入</button>
+      <div class="login-toggle">還沒有帳號？<span onclick="toggleMode()">點此免費註冊</span></div>
       <div class="login-msg" id="login-msg"></div>
     </div>
 
-    <div class="login-privacy">
+    <div class="login-privacy" style="margin-top:20px">
       🔒 資料加密存於 Supabase 雲端<br>
       每人只能讀取自己的資料，包括管理員<br>
       依 Supabase 隱私政策保護
@@ -241,20 +239,23 @@
     <div id="page-expenses" class="page">
       <div class="page-header"><div class="page-title">收入與固定支出</div><div class="page-sub">即時調整本月收入，支出可設定固定金額或收入比例</div></div>
       <div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.04)">
-        <div class="card-label">本月收入調整</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end">
+        <div class="card-label">本月收入設定</div>
+        <div class="income-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
           <div class="field-group"><label class="field-label">本人月收入 $</label><input class="field-input" id="adj-income" type="number" placeholder="80000" oninput="adjustIncome()"></div>
           <div class="field-group"><label class="field-label">配偶月收入 $</label><input class="field-input" id="adj-spouse" type="number" placeholder="0" oninput="adjustIncome()"></div>
           <div class="field-group"><label class="field-label">其他收入 $</label><input class="field-input" id="adj-other" type="number" placeholder="0" oninput="adjustIncome()"></div>
-          <div style="padding-bottom:1px"><div style="font-size:0.7rem;color:var(--muted);margin-bottom:5px">月收入合計</div><div id="adj-total" style="font-family:'JetBrains Mono',monospace;font-size:1.4rem;color:var(--gold2);white-space:nowrap">$0</div></div>
         </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span style="font-size:0.75rem;color:var(--muted)">快速模擬：</span>
-          <button class="btn-sim" onclick="simIncome(0.8)">本月少 20%</button>
-          <button class="btn-sim" onclick="simIncome(0.9)">本月少 10%</button>
+        <div class="income-total-box" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:12px">
+          <span style="font-size:0.82rem;color:var(--muted)">月收入合計</span>
+          <span id="adj-total" style="font-family:'JetBrains Mono',monospace;font-size:1.4rem;color:var(--gold2)">$0</span>
+        </div>
+        <div class="sim-btns" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:0.73rem;color:var(--muted)">快速模擬：</span>
+          <button class="btn-sim" onclick="simIncome(0.8)">少 20%</button>
+          <button class="btn-sim" onclick="simIncome(0.9)">少 10%</button>
           <button class="btn-sim" onclick="simIncome(1.0)">回復正常</button>
-          <button class="btn-sim" onclick="simIncome(1.1)">多 10%（獎金）</button>
-          <button class="btn-sim" onclick="simIncome(1.2)">多 20%（獎金）</button>
+          <button class="btn-sim" onclick="simIncome(1.1)">+10% 獎金</button>
+          <button class="btn-sim" onclick="simIncome(1.2)">+20% 獎金</button>
         </div>
       </div>
       <div class="card">
@@ -303,13 +304,26 @@
     </div>
 
     <div id="page-ledger" class="page">
-      <div class="page-header"><div class="page-title">每月記帳</div><div class="page-sub">登記本月實際收支</div></div>
+      <div class="page-header"><div class="page-title">每月記帳</div><div class="page-sub">登記本月實際收支，支出自動對應預算追蹤</div></div>
+
+      <!-- 預算追蹤卡片 -->
+      <div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.03)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-label" style="margin-bottom:0">本月各項目預算追蹤</div>
+          <select id="ledger-month" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.82rem;outline:none"></select>
+        </div>
+        <div id="budget-tracker"></div>
+      </div>
+
+      <!-- 記帳列表 -->
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <select id="ledger-month" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.83rem;outline:none"></select>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div class="card-label" style="margin-bottom:0">收支記錄</div>
           <button class="btn-addrow" onclick="addLedgerRow()">＋ 新增記錄</button>
         </div>
-        <div class="ledger-header"><span>日期</span><span>項目</span><span>金額</span><span>類型</span><span></span></div>
+        <div class="ledger-header" id="ledger-header-row">
+          <span>日期</span><span>支出項目</span><span>金額</span><span>類型</span><span></span>
+        </div>
         <div id="ledger-list"></div>
         <hr class="divider">
         <div style="display:flex;justify-content:flex-end;gap:24px;font-family:'JetBrains Mono',monospace;font-size:0.85rem">
@@ -353,6 +367,85 @@
     <div id="page-invest" class="page">
       <div class="page-header"><div class="page-title">投資配置建議</div><div class="page-sub">穩健成長型投資組合建議（非投資建議，僅供參考）</div></div>
       <div id="invest-body"></div>
+    </div>
+  </div>
+
+  <!-- 手機底部導航列 -->
+  <nav class="mobile-nav" id="mobile-nav">
+    <div class="mob-nav-item active" onclick="showPage('dashboard')" id="mob-dashboard">
+      <span class="mob-nav-icon">◈</span><span class="mob-nav-label">儀表板</span>
+    </div>
+    <div class="mob-nav-item" onclick="showPage('expenses')" id="mob-expenses">
+      <span class="mob-nav-icon">↓</span><span class="mob-nav-label">支出</span>
+    </div>
+    <div class="mob-nav-item" onclick="showPage('ledger')" id="mob-ledger">
+      <span class="mob-nav-icon">≡</span><span class="mob-nav-label">記帳</span>
+    </div>
+    <div class="mob-nav-item" onclick="showPage('goals')" id="mob-goals">
+      <span class="mob-nav-icon">◎</span><span class="mob-nav-label">目標</span>
+    </div>
+    <div class="mob-nav-item" onclick="showPage('plan')" id="mob-plan">
+      <span class="mob-nav-icon">★</span><span class="mob-nav-label">規劃</span>
+    </div>
+    <div class="mob-nav-item" onclick="showMobileMenu()" id="mob-more">
+      <span class="mob-nav-icon">⋯</span><span class="mob-nav-label">更多</span>
+    </div>
+  </nav>
+
+  <!-- 手機更多選單 -->
+  <div id="mobile-more-menu" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.5)" onclick="hideMobileMenu()">
+    <div style="position:absolute;bottom:70px;left:0;right:0;background:var(--ink2);border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding:16px" onclick="event.stopPropagation()">
+      <div style="font-size:0.7rem;color:var(--faint);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px;padding:0 4px">更多功能</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button onclick="showPage('debt');hideMobileMenu()" class="mob-menu-btn">⚠ 債務管理</button>
+        <button onclick="showPage('invest');hideMobileMenu()" class="mob-menu-btn">↗ 投資配置</button>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--line);margin:12px 0">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button onclick="resetOnboarding();hideMobileMenu()" class="mob-menu-btn" style="color:var(--muted)">⚙ 重新設定</button>
+        <button onclick="signOut();hideMobileMenu()" class="mob-menu-btn" style="color:var(--rose)">⏏ 登出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AI 助理浮動按鈕 ══ -->
+<button id="ai-fab" onclick="openAIChat()" title="AI 財務助理">
+  <span id="ai-fab-icon">✦</span>
+</button>
+
+<!-- ══ AI 對話視窗 ══ -->
+<div id="ai-drawer" style="display:none">
+  <div id="ai-drawer-backdrop" onclick="closeAIChat()"></div>
+  <div id="ai-panel">
+    <div id="ai-panel-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:1.2rem">✦</span>
+        <div>
+          <div style="font-size:0.92rem;font-weight:600;color:var(--gold2)">AI 財務助理</div>
+          <div style="font-size:0.68rem;color:var(--faint)">Powered by Gemini · 資料僅在本裝置處理</div>
+        </div>
+      </div>
+      <button onclick="closeAIChat()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:4px">✕</button>
+    </div>
+
+    <div id="ai-quick-actions">
+      <button class="ai-quick-btn" onclick="aiQuick('analyze')">📊 分析本月</button>
+      <button class="ai-quick-btn" onclick="aiQuick('overspend')">🚨 超支警示</button>
+      <button class="ai-quick-btn" onclick="aiQuick('advice')">💡 省錢建議</button>
+      <button class="ai-quick-btn" onclick="aiQuick('goal')">🎯 目標進度</button>
+    </div>
+
+    <div id="ai-messages"></div>
+
+    <div id="ai-input-area">
+      <div id="ai-input-wrap">
+        <textarea id="ai-input" placeholder="輸入支出、問問題... 例：「早餐80」或「這個月還能買 AirPods 嗎？」" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAIMessage()}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+        <button id="ai-send-btn" onclick="sendAIMessage()">↑</button>
+      </div>
+      <div style="font-size:0.65rem;color:var(--faint);text-align:center;margin-top:6px">AI 建議僅供參考，非專業財務意見</div>
     </div>
   </div>
 </div>
@@ -507,7 +600,251 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--ink);color:var(--tex
 .btn-sim{padding:5px 11px;border-radius:6px;font-size:0.73rem;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:1px solid var(--line2);background:transparent;color:var(--muted);transition:all 0.18s}
 .btn-sim:hover{border-color:var(--gold2);color:var(--gold2);background:rgba(212,168,67,0.08)}
 .computed-amt{font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--teal);background:var(--tealdim);border-radius:6px;padding:9px 10px;text-align:right;border:1px solid rgba(62,207,178,0.2);white-space:nowrap}
-@media(max-width:700px){.stat-row{grid-template-columns:1fr 1fr}.two-col,.goal-grid,.form-grid{grid-template-columns:1fr}.sidebar{display:none}.ob-q{font-size:1.5rem}.ob-top,.ob-body,.ob-nav{padding-left:20px;padding-right:20px}}
+/* ══ AI 浮動按鈕 ══ */
+#ai-fab {
+  position:fixed;right:18px;bottom:80px;z-index:350;
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,#d4a843,#3ecfb2);
+  border:none;cursor:pointer;
+  box-shadow:0 4px 20px rgba(212,168,67,0.4);
+  font-size:1.3rem;color:#0e1117;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform 0.2s,box-shadow 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+#ai-fab:active{transform:scale(0.93);}
+#ai-fab.loading { animation: fabPulse 1s infinite; }
+@keyframes fabPulse {
+  0%,100%{box-shadow:0 4px 20px rgba(212,168,67,0.4)}
+  50%{box-shadow:0 4px 30px rgba(62,207,178,0.7)}
+}
+
+/* ══ AI 對話視窗 ══ */
+#ai-drawer-backdrop {
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;
+  animation:fadeIn 0.2s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#ai-panel {
+  position:fixed;bottom:0;left:0;right:0;z-index:601;
+  background:var(--ink2);border-top:1px solid var(--line);
+  border-radius:20px 20px 0 0;
+  display:flex;flex-direction:column;
+  max-height:82vh;
+  animation:slideUp 0.3s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+#ai-panel-header {
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 18px 12px;
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+#ai-quick-actions {
+  display:flex;gap:7px;padding:10px 14px;
+  overflow-x:auto;flex-shrink:0;
+  scrollbar-width:none;
+}
+#ai-quick-actions::-webkit-scrollbar{display:none}
+.ai-quick-btn {
+  flex-shrink:0;padding:7px 12px;
+  border-radius:20px;border:1px solid var(--line2);
+  background:var(--ink3);color:var(--text);
+  font-family:'Noto Sans TC',sans-serif;font-size:0.78rem;
+  cursor:pointer;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  transition:all 0.15s;
+}
+.ai-quick-btn:active{background:var(--ink4);border-color:var(--gold);}
+#ai-messages {
+  flex:1;overflow-y:auto;padding:12px 14px;
+  display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
+}
+.ai-msg {
+  display:flex;gap:8px;align-items:flex-start;
+  animation:msgIn 0.2s ease;
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ai-msg.user { flex-direction:row-reverse; }
+.ai-msg-bubble {
+  max-width:82%;padding:10px 13px;border-radius:14px;
+  font-size:0.85rem;line-height:1.55;
+}
+.ai-msg.user .ai-msg-bubble {
+  background:linear-gradient(135deg,rgba(212,168,67,0.25),rgba(212,168,67,0.1));
+  border:1px solid rgba(212,168,67,0.3);color:var(--text);
+  border-radius:14px 4px 14px 14px;
+}
+.ai-msg.ai .ai-msg-bubble {
+  background:var(--ink3);border:1px solid var(--line);color:var(--text);
+  border-radius:4px 14px 14px 14px;
+}
+.ai-msg-avatar {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.8rem;flex-shrink:0;margin-top:2px;
+}
+.ai-msg.ai .ai-msg-avatar { background:linear-gradient(135deg,#d4a843,#3ecfb2);color:#0e1117; }
+.ai-msg.user .ai-msg-avatar { background:var(--ink4);color:var(--muted); }
+.ai-typing { display:flex;gap:4px;padding:4px 2px; }
+.ai-typing span {
+  width:7px;height:7px;border-radius:50%;background:var(--muted);
+  animation:typing 1.2s infinite;
+}
+.ai-typing span:nth-child(2){animation-delay:0.2s}
+.ai-typing span:nth-child(3){animation-delay:0.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* 記帳快速確認卡 */
+.ai-ledger-card {
+  background:var(--ink4);border:1px solid var(--golddim);
+  border-radius:12px;padding:12px;margin-top:6px;
+}
+.ai-ledger-card .ai-lc-title { font-size:0.72rem;color:var(--faint);margin-bottom:8px;letter-spacing:0.05em; }
+.ai-ledger-card .ai-lc-row { display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:4px; }
+.ai-ledger-confirm-btn {
+  width:100%;margin-top:10px;padding:9px;border-radius:8px;
+  border:1px solid var(--golddim);background:rgba(212,168,67,0.15);
+  color:var(--gold2);font-family:'Noto Sans TC',sans-serif;font-size:0.85rem;
+  cursor:pointer;font-weight:500;
+  -webkit-tap-highlight-color:transparent;
+}
+
+#ai-input-area {
+  padding:10px 14px 16px;border-top:1px solid var(--line);flex-shrink:0;
+}
+#ai-input-wrap {
+  display:flex;align-items:flex-end;gap:8px;
+  background:var(--ink3);border:1px solid var(--line2);
+  border-radius:14px;padding:8px 8px 8px 14px;
+}
+#ai-input {
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:0.88rem;
+  resize:none;line-height:1.4;max-height:120px;
+}
+#ai-input::placeholder{color:var(--faint);}
+#ai-send-btn {
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#d4a843,#3ecfb2);
+  border:none;color:#0e1117;font-size:1rem;font-weight:700;
+  cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* 桌面版 AI 面板靠右側顯示 */
+@media(min-width:701px){
+  #ai-fab { bottom:30px; }
+  #ai-panel {
+    left:auto;right:20px;bottom:90px;
+    width:380px;border-radius:16px;border:1px solid var(--line);
+    max-height:70vh;
+  }
+}
+
+.mobile-nav{display:none}
+@media(max-width:700px){
+  /* ── 全域修正 ── */
+  html,body{overflow:hidden;height:100%;width:100%;max-width:100vw}
+  *{box-sizing:border-box}
+  .sidebar{display:none}
+  #app{overflow:hidden;height:100vh;max-height:100vh}
+  .main-wrap{
+    flex:1;overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    width:100%;max-width:100vw;
+    height:calc(100vh - 60px);
+    max-height:calc(100vh - 60px);
+  }
+  .page{
+    padding:14px 12px 100px;
+    max-width:100%;overflow-x:hidden;
+  }
+
+  /* ── 卡片與格線 ── */
+  .card{padding:14px 12px;margin-bottom:12px}
+  .stat-row{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:12px 10px}
+  .stat-v{font-size:1.05rem}
+  .two-col,.goal-grid,.form-grid,.form-grid-3{grid-template-columns:1fr}
+  .page-title{font-size:1.25rem}
+
+  /* ── 收入欄位：手機改單列 ── */
+  .income-grid{display:flex!important;flex-direction:column!important;gap:8px!important}
+  .income-total-box{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+  .sim-btns{flex-wrap:wrap;gap:6px}
+  .btn-sim{font-size:0.7rem;padding:4px 9px}
+
+  /* ── 支出列：手機改兩列 ── */
+  .exp-row-mobile{
+    background:var(--ink3);border:1px solid var(--line);
+    border-radius:10px;padding:10px;margin-bottom:8px;
+  }
+  .exp-row-mobile .exp-top{display:flex;gap:8px;margin-bottom:6px}
+  .exp-row-mobile .exp-bot{display:flex;gap:8px;align-items:center}
+
+  /* ── 記帳列 ── */
+  .ledger-header{display:none}
+  .ledger-row{
+    display:flex;flex-direction:column;gap:4px;
+    background:var(--ink3);border:1px solid var(--line);
+    border-radius:10px;padding:10px;margin-bottom:8px;
+  }
+  .ledger-row input,.ledger-row select{font-size:0.85rem;padding:7px 10px}
+  .ledger-row-top{display:flex;gap:8px;align-items:center}
+  .ledger-row-mid{display:flex;gap:8px}
+  .ledger-row-bot{display:flex;justify-content:space-between;align-items:center}
+
+  /* ── 預算追蹤 ── */
+  .budget-item-row{
+    display:flex!important;flex-direction:column!important;
+    gap:6px!important;padding:10px 0!important;
+  }
+  .budget-item-right{text-align:left!important}
+
+  /* ── Onboarding ── */
+  .ob-q{font-size:1.4rem}
+  .ob-top,.ob-body,.ob-nav{padding-left:16px;padding-right:16px}
+  .ob-body{padding-top:16px;padding-bottom:16px}
+  .exp-row{grid-template-columns:1fr 1fr;gap:6px}
+  .exp-row select{grid-column:1/-1}
+  .debt-row{grid-template-columns:1fr 1fr;gap:6px}
+  .debt-row input:first-child{grid-column:1/-1}
+
+  /* ── 計劃頁 ── */
+  .plan-item{grid-template-columns:24px 1fr;gap:8px}
+  .plan-amt{display:none}
+  .inv-row{grid-template-columns:20px 1fr auto;gap:8px}
+  .inv-row > div:last-child{display:none}
+
+  /* ── 底部導航 ── */
+  .mobile-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:400;
+    background:var(--ink2);border-top:1px solid var(--line);
+    height:60px;align-items:stretch;
+    safe-area-inset-bottom:env(safe-area-inset-bottom);
+  }
+  .mob-nav-item{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;cursor:pointer;color:var(--faint);
+    padding:4px 2px;border-top:2px solid transparent;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .mob-nav-item.active{color:var(--gold2);border-top-color:var(--gold)}
+  .mob-nav-icon{font-size:1.05rem;line-height:1}
+  .mob-nav-label{font-size:0.56rem;letter-spacing:0.02em}
+  .mob-menu-btn{
+    padding:14px;background:var(--ink3);border:1px solid var(--line);
+    border-radius:10px;color:var(--text);font-family:'Noto Sans TC',sans-serif;
+    font-size:0.88rem;cursor:pointer;text-align:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* 登入卡片 */
+  .login-card{padding:28px 20px;margin:16px}
+}
 </style>
 
 <script>
@@ -517,27 +854,281 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--ink);color:var(--tex
 // ════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://inbszlvdplcktufvyzml.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluYnN6bHZkcGxja3R1ZnZ5em1sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNjUwNzUsImV4cCI6MjA4Nzk0MTA3NX0.5GiWP8Ukqzf9XA0IfTZ3iE8Uf70c-ZEyb0Lo-BowA0w';
+// ── Gemini API Key（填入你的 Google AI Studio key）──
+const GEMINI_KEY = '';  // 填入：https://aistudio.google.com/
 
 // ════════════════════════════════════════════════════
 //  Supabase 初始化
 // ════════════════════════════════════════════════════
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+// Wait for ESM module to load, then init
+let sb;
+// ════════════════════════════════════════════
+// 輕量級 Supabase 客戶端（不依賴外部 SDK）
+// 使用原生 fetch 直接呼叫 Supabase REST API
+// ════════════════════════════════════════════
+function initSupabase() {
+  let _session = null;
+
+  // ── 從 localStorage 恢復 session ──
+  function loadSession() {
+    try {
+      const raw = localStorage.getItem('sb_session');
+      if (raw) _session = JSON.parse(raw);
+    } catch(e) {}
+    return _session;
+  }
+
+  function saveSession(s) {
+    if (!s) {
+      _session = null;
+      localStorage.removeItem('sb_session');
+      return;
+    }
+    // 正規化 session 結構，相容 Supabase 各種回傳格式
+    const normalized = {
+      access_token:  s.access_token,
+      refresh_token: s.refresh_token || s.refresh_token,
+      user: s.user || (s.access_token ? (() => {
+        try {
+          const p = JSON.parse(atob(s.access_token.split('.')[1]));
+          return { id: p.sub, email: p.email || s.email };
+        } catch { return null; }
+      })() : null)
+    };
+    if (!normalized.user && s.user_id) normalized.user = { id: s.user_id, email: s.email };
+    _session = normalized;
+    localStorage.setItem('sb_session', JSON.stringify(normalized));
+    console.log('[saveSession] saved user:', normalized.user?.email, 'has token:', !!normalized.access_token);
+  }
+
+  function authHeaders(extra) {
+    const h = { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON };
+    if (_session?.access_token) h['Authorization'] = 'Bearer ' + _session.access_token;
+    return Object.assign(h, extra || {});
+  }
+
+  // ── Auth ──
+  async function signInWithPassword(email, password) {
+    const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await r.json();
+    console.log('[signInWithPassword] response status:', r.status, 'has token:', !!data.access_token);
+    if (data.access_token) {
+      // 確保 user 物件完整
+      if (!data.user && data.user_id) {
+        data.user = { id: data.user_id, email: data.email || email };
+      }
+      if (!data.user) {
+        data.user = { id: (JSON.parse(atob(data.access_token.split('.')[1]))).sub, email };
+      }
+      saveSession(data);
+      return { data: { session: { user: data.user, access_token: data.access_token } }, error: null };
+    }
+    const errMsg = data.error_description || data.message || data.msg || '登入失敗，請確認帳號密碼';
+    return { data: null, error: { message: errMsg } };
+  }
+
+  async function signUp(email, password) {
+    const r = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await r.json();
+    console.log('[signUp] response status:', r.status, 'has token:', !!data.access_token);
+    if (data.access_token) {
+      // Email confirm OFF：直接拿到 token，存 session
+      if (!data.user && data.user_id) {
+        data.user = { id: data.user_id, email: data.email || email };
+      }
+      if (!data.user) {
+        try { data.user = { id: (JSON.parse(atob(data.access_token.split('.')[1]))).sub, email }; } catch {}
+      }
+      saveSession(data);
+      return { data: { session: { user: data.user, access_token: data.access_token } }, error: null };
+    }
+    if (data.id || data.user) return { data, error: null };
+    // 409 = user already exists
+    if (r.status === 400 && (data.message||'').includes('already')) {
+      return { data: null, error: { message: '此 Email 已註冊，請直接登入' } };
+    }
+    return { data: null, error: { message: data.error_description || data.message || data.msg || '註冊失敗' } };
+  }
+
+  async function signOut() {
+    if (_session?.access_token) {
+      await fetch(SUPABASE_URL + '/auth/v1/logout', {
+        method: 'POST', headers: authHeaders()
+      }).catch(()=>{});
+    }
+    saveSession(null);
+  }
+
+  async function getUser() {
+    if (!_session?.access_token) return null;
+    // Check if token expired
+    try {
+      const payload = JSON.parse(atob(_session.access_token.split('.')[1]));
+      if (payload.exp * 1000 < Date.now()) {
+        // Try refresh
+        const refreshed = await refreshSession();
+        if (!refreshed) return null;
+      }
+    } catch(e) {}
+    return _session.user || { id: _session.user_id, email: _session.email };
+  }
+
+  async function refreshSession() {
+    if (!_session?.refresh_token) return false;
+    try {
+      const r = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON },
+        body: JSON.stringify({ refresh_token: _session.refresh_token })
+      });
+      const data = await r.json();
+      if (data.access_token) { saveSession(data); return true; }
+    } catch(e) {}
+    saveSession(null);
+    return false;
+  }
+
+  async function signInWithOAuth(provider) {
+    // 使用 app 根目錄作為 redirect，避免手機 Safari 的問題
+    const base = window.location.origin + window.location.pathname;
+    const redirectTo = encodeURIComponent(base);
+    window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=' + provider + '&redirect_to=' + redirectTo;
+  }
+
+  // ── Handle OAuth callback（同時處理 hash 和 query string）──
+  function handleOAuthCallback() {
+    // 方法1：hash fragment（#access_token=...）
+    const hash = window.location.hash;
+    if (hash && hash.length > 1) {
+      const params = new URLSearchParams(hash.substring(1));
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+      if (access_token) {
+        try {
+          const payload = JSON.parse(atob(access_token.split('.')[1]));
+          const session = {
+            access_token, refresh_token,
+            user: {
+              id: payload.sub,
+              email: payload.email,
+              user_metadata: payload.user_metadata || {}
+            }
+          };
+          saveSession(session);
+          // 清除 URL 中的 token
+          window.history.replaceState({}, document.title, window.location.pathname);
+          console.log('[OAuth] hash callback 成功，user:', payload.email);
+          return true;
+        } catch(e) { console.error('[OAuth] hash parse error:', e); }
+      }
+    }
+
+    // 方法2：query string（?code=... 或 ?error=...）
+    const search = window.location.search;
+    if (search) {
+      const params = new URLSearchParams(search);
+      const error = params.get('error');
+      const errorDesc = params.get('error_description');
+      if (error) {
+        console.error('[OAuth] error:', error, errorDesc);
+        // 清除錯誤參數
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return false;
+      }
+      // code 流程需要後端交換，我們的架構不支援，忽略
+    }
+
+    return false;
+  }
+
+  // ── Database ──
+  async function dbFetch(path, options) {
+    const user = await getUser();
+    if (!user) return { data: null, error: { message: '未登入' } };
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+      ...options,
+      headers: authHeaders({ 'Prefer': 'return=representation', ...(options?.headers||{}) })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      return { data: null, error: err };
+    }
+    const text = await r.text();
+    const data = text ? JSON.parse(text) : [];
+    return { data, error: null };
+  }
+
+  // Build sb object
+  sb = {
+    auth: {
+      getSession: async () => {
+        handleOAuthCallback();
+        const user = await getUser();
+        if (user) {
+          // Ensure currentUser is always up to date
+          return { data: { session: { user, access_token: _session?.access_token } } };
+        }
+        return { data: { session: null } };
+      },
+      signInWithPassword: (creds) => signInWithPassword(creds.email, creds.password),
+      signUp: (creds) => signUp(creds.email, creds.password),
+      signOut: () => signOut(),
+      signInWithOAuth: ({ provider }) => signInWithOAuth(provider),
+      onAuthStateChange: () => {} // handled manually via getSession
+    },
+    from: (table) => ({
+      select: (cols) => ({
+        eq: (col, val) => dbFetch(table + '?select=' + (cols||'*') + '&' + col + '=eq.' + val),
+        single: async function() {
+          const r = await this;
+          if (r.data && r.data.length > 0) return { data: r.data[0], error: null };
+          return { data: null, error: { code: 'PGRST116' } };
+        }
+      }),
+      upsert: (row, opts) => {
+        const prefer = 'return=representation,resolution=merge-duplicates';
+        return dbFetch(table, {
+          method: 'POST',
+          headers: { 'Prefer': prefer },
+          body: JSON.stringify(row)
+        });
+      },
+      delete: () => ({
+        eq: (col, val) => dbFetch(table + '?' + col + '=eq.' + val, { method: 'DELETE' })
+      })
+    })
+  };
+
+  loadSession();
+  startApp();
+}
 
 let currentUser = null;
+let appInitialized = false; // 防止重複初始化
 
 // ── 登入模式切換 ──
 let emailMode = 'login'; // 'login' | 'register'
 function toggleMode() {
   emailMode = emailMode === 'login' ? 'register' : 'login';
   const btn = document.getElementById('email-btn');
-  const toggle = document.querySelector('.login-toggle');
+  const toggle = document.querySelector('#email-section .login-toggle');
+  document.getElementById('login-msg').textContent = '';
   if (emailMode === 'register') {
-    btn.textContent = '註冊新帳號';
-    toggle.innerHTML = '已有帳號？<span onclick="toggleMode()">點此切換</span>到登入模式';
+    btn.textContent = '免費註冊';
+    if (toggle) toggle.innerHTML = '已有帳號？<span onclick="toggleMode()">點此登入</span>';
+    document.getElementById('login-password').placeholder = '設定密碼（至少 6 位）';
   } else {
-    btn.textContent = '登入 / 註冊';
-    toggle.innerHTML = '還沒有帳號？<span onclick="toggleMode()">點此切換</span>到註冊模式';
+    btn.textContent = '登入';
+    if (toggle) toggle.innerHTML = '還沒有帳號？<span onclick="toggleMode()">點此註冊</span>';
+    document.getElementById('login-password').placeholder = '密碼（至少 6 位）';
   }
 }
 
@@ -549,11 +1140,7 @@ function setLoginMsg(msg, isErr) {
 
 // ── Google OAuth 登入 ──
 async function signInWithGoogle() {
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.href }
-  });
-  if (error) setLoginMsg('登入失敗：' + error.message, true);
+  await sb.auth.signInWithOAuth({ provider: 'google' });
 }
 
 // ── Email 登入 / 註冊 ──
@@ -561,20 +1148,51 @@ async function signInWithEmail() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   if (!email || !password) { setLoginMsg('請填入 Email 和密碼', true); return; }
-
+  const btn = document.getElementById('email-btn');
+  btn.disabled = true;
   setLoginMsg('處理中…', false);
+
   let result;
   if (emailMode === 'register') {
+    // 先嘗試註冊
     result = await sb.auth.signUp({ email, password });
-    if (!result.error && result.data.user?.identities?.length === 0) {
-      setLoginMsg('此 Email 已註冊，請直接登入', true); return;
+    if (result.error) {
+      btn.disabled = false;
+      setLoginMsg('註冊失敗：' + result.error.message, true);
+      return;
     }
-    if (!result.error) { setLoginMsg('✓ 註冊成功！請查收驗證信後登入', false); return; }
+    // 註冊後直接嘗試登入（適用於關閉 email confirm 的情況）
+    result = await sb.auth.signInWithPassword({ email, password });
+    if (result.error) {
+      btn.disabled = false;
+      // 可能需要 email 確認
+      setLoginMsg('✓ 註冊成功！請查收驗證信後再登入', false);
+      return;
+    }
   } else {
     result = await sb.auth.signInWithPassword({ email, password });
+    if (result.error) {
+      btn.disabled = false;
+      const msg = result.error.message;
+      if (msg.includes('Invalid login') || msg.includes('invalid_credentials')) {
+        setLoginMsg('Email 或密碼錯誤，或帳號尚未確認信箱', true);
+      } else {
+        setLoginMsg('登入失敗：' + msg, true);
+      }
+      return;
+    }
   }
-  if (result.error) { setLoginMsg('錯誤：' + result.error.message, true); return; }
-  // onAuthStateChange will handle the rest
+
+  btn.disabled = false;
+  // 稍等一下讓 session 寫入 localStorage
+  await new Promise(r => setTimeout(r, 100));
+  const { data: { session } } = await sb.auth.getSession();
+  console.log('[signInWithEmail] final session:', session?.user?.email);
+  if (session && session.user) {
+    await enterApp(session.user);
+  } else {
+    setLoginMsg('登入失敗，請再試一次', true);
+  }
 }
 
 // ── 登出 ──
@@ -582,6 +1200,7 @@ async function signOut() {
   if (!confirm('確定要登出嗎？')) return;
   await sb.auth.signOut();
   currentUser = null;
+  appInitialized = false;
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('onboarding').style.display = 'none';
@@ -593,36 +1212,91 @@ async function signOut() {
 //  row:   (user_id, key, value)  ← Row Level Security
 // ════════════════════════════════════════════════════
 async function dbLoad(key) {
-  const { data, error } = await sb
-    .from('finance_data')
-    .select('value')
-    .eq('key', key)
-    .single();
-  if (error || !data) return null;
-  try { return JSON.parse(data.value); } catch { return null; }
+  const user = currentUser;
+  if (!user) return null;
+  try {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/finance_data?select=value&user_id=eq.' + user.id + '&key=eq.' + key, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + (await sb.auth.getSession()).data.session?.access_token }
+    });
+    const data = await r.json();
+    if (!data || !data.length) return null;
+    return JSON.parse(data[0].value);
+  } catch(e) { return null; }
 }
 
 async function dbSave(key, value) {
-  const { error } = await sb
-    .from('finance_data')
-    .upsert(
-      { user_id: currentUser.id, key, value: JSON.stringify(value) },
-      { onConflict: 'user_id,key' }
+  if (!currentUser) { console.warn('[dbSave] no currentUser'); return false; }
+  try {
+    const sessionData = await sb.auth.getSession();
+    const token = sessionData.data.session?.access_token;
+    if (!token) {
+      console.warn('[dbSave] no token for key:', key, '— session:', sessionData.data.session);
+      return false;
+    }
+
+    // 先嘗試 UPDATE（有資料才 update）
+    const updateR = await fetch(
+      SUPABASE_URL + '/rest/v1/finance_data?user_id=eq.' + currentUser.id + '&key=eq.' + key,
+      {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ value: JSON.stringify(value), updated_at: new Date().toISOString() })
+      }
     );
-  if (error) console.error('dbSave error:', error);
-  return !error;
+
+    // 如果 PATCH 回傳 204 代表成功更新
+    if (updateR.status === 204) return true;
+
+    // 否則 INSERT（第一次存）
+    const insertR = await fetch(SUPABASE_URL + '/rest/v1/finance_data', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        key,
+        value: JSON.stringify(value),
+        updated_at: new Date().toISOString()
+      })
+    });
+    const ok = insertR.ok || insertR.status === 201;
+    if (!ok) {
+      const errText = await insertR.text();
+      console.error('dbSave INSERT failed:', insertR.status, errText);
+    }
+    return ok;
+  } catch(e) { console.error('dbSave error:', e); return false; }
 }
 
 async function dbLoadAll() {
-  const { data, error } = await sb
-    .from('finance_data')
-    .select('key, value');
-  if (error || !data) return {};
-  const result = {};
-  data.forEach(row => {
-    try { result[row.key] = JSON.parse(row.value); } catch {}
-  });
-  return result;
+  if (!currentUser) { console.warn('[dbLoadAll] no currentUser'); return {}; }
+  try {
+    const sessionData = await sb.auth.getSession();
+    const token = sessionData.data.session?.access_token;
+    if (!token) { console.warn('[dbLoadAll] no token'); return {}; }
+    const r = await fetch(SUPABASE_URL + '/rest/v1/finance_data?select=key,value&user_id=eq.' + currentUser.id, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }
+    });
+    if (r.status === 401 || r.status === 403) {
+      console.warn('[dbLoadAll] auth error:', r.status);
+      return {};
+    }
+    const data = await r.json();
+    if (!Array.isArray(data)) { console.warn('[dbLoadAll] unexpected response:', data); return {}; }
+    const result = {};
+    data.forEach(row => { try { result[row.key] = JSON.parse(row.value); } catch {} });
+    console.log('[dbLoadAll] loaded keys:', Object.keys(result));
+    return result;
+  } catch(e) { console.error('[dbLoadAll] error:', e); return {}; }
 }
 
 // ════════════════════════════════════════════════════
@@ -645,10 +1319,17 @@ async function doSave() {
     goals:    appState.goals,
     ledger:   appState.ledger,
   };
+  console.log('[doSave] 開始儲存，keys:', Object.keys(payload));
   const results = await Promise.all(
-    Object.entries(payload).map(([k, v]) => dbSave(k, v))
+    Object.entries(payload).map(async ([k, v]) => {
+      const ok = await dbSave(k, v);
+      console.log('[doSave]', k, ok ? '✓' : '✗ 失敗');
+      return ok;
+    })
   );
-  setSaveStatus(results.every(Boolean) ? 'ok' : 'err');
+  const allOk = results.every(Boolean);
+  setSaveStatus(allOk ? 'ok' : 'err');
+  if (!allOk) console.error('[doSave] 部分儲存失敗，results:', results);
 }
 
 function setSaveStatus(state) {
@@ -669,25 +1350,7 @@ function setSaveStatus(state) {
 // ════════════════════════════════════════════════════
 //  Auth 狀態監聽：登入後載入資料
 // ════════════════════════════════════════════════════
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    currentUser = session.user;
-    document.getElementById('login-screen').style.display = 'none';
-    showLoading('正在載入你的財務資料…');
-    try {
-      await loadUserData();
-    } catch(e) {
-      console.error('[理財助手] loadUserData error:', e);
-      // Still hide loading and show onboarding so user isn't stuck
-      document.getElementById('onboarding').style.display = 'flex';
-      document.getElementById('app').style.display = 'none';
-      renderObSlide();
-    }
-    hideLoading();
-  } else if (event === 'SIGNED_OUT') {
-    currentUser = null;
-  }
-});
+// onAuthStateChange moved to startApp()
 
 async function loadUserData() {
   let all = {};
@@ -712,11 +1375,19 @@ async function loadUserData() {
       appState.incomeNet    = all.income.net    || 0;
       appState.incomeSpouse = all.income.spouse || 0;
       appState.incomeOther  = all.income.other  || 0;
+      // 同步回 obData 讓重新設定時也用最新收入
+      obData.incomeNet    = appState.incomeNet;
+      obData.incomeSpouse = appState.incomeSpouse;
+      obData.incomeOther  = appState.incomeOther;
     }
     appState.expenses = all.expenses || [];
     appState.debts    = all.debts    || [];
     appState.goals    = all.goals    || [];
     appState.ledger   = all.ledger   || [];
+    console.log('[loadUserData] 已載入:', {
+      income: appState.incomeNet, expenses: appState.expenses.length,
+      debts: appState.debts.length, goals: appState.goals.length, ledger: appState.ledger.length
+    });
 
     const totalIncome = appState.incomeNet + appState.incomeSpouse + appState.incomeOther;
     document.getElementById('dash-title').textContent = (obData.name ? obData.name + '的' : '') + '財務儀表板';
@@ -863,14 +1534,21 @@ async function finishOnboarding(){
   document.getElementById('onboarding').style.display='none';
   document.getElementById('app').style.display='flex';
   initCharts();renderAll();initIncomeAdj();recalculate();
-  await doSave(); // save to Supabase immediately
+  // 儲存到 Supabase，等待完成才顯示完成狀態
+  setSaveStatus('saving');
+  await doSave();
+  console.log('[finishOnboarding] 初始資料儲存完成');
 }
 
 async function resetOnboarding(){
   if(!confirm('確定要重新設定嗎？這會清除你的所有財務資料，無法復原。'))return;
   // Clear Supabase data
   const keys=['profile','income','expenses','debts','goals','ledger'];
-  await Promise.all(keys.map(k=>sb.from('finance_data').delete().eq('key',k)));
+  const token = (await sb.auth.getSession()).data.session?.access_token;
+  await fetch(SUPABASE_URL + '/rest/v1/finance_data?user_id=eq.' + currentUser.id, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }
+  });
   obStep=0;obData={name:'',marital:'',children:[],ages:'',incomeNet:'',incomeSpouse:'',incomeOther:'',expenses:[],debts:[],goals:[],emergencyFund:''};
   appState={incomeNet:0,incomeSpouse:0,incomeOther:0,expenses:[],debts:[],goals:[],ledger:[]};
   document.getElementById('app').style.display='none';
@@ -889,16 +1567,22 @@ let expMode='fixed';
 function showPage(p){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   const navItems=document.querySelectorAll('.nav-item');
-  if(p==='dashboard')navItems[0].classList.add('active');
-  else if(p==='expenses'){navItems[1].classList.add('active');initIncomeAdj();renderExpenses();}
-  else if(p==='debt')navItems[2].classList.add('active');
-  else if(p==='ledger')navItems[3].classList.add('active');
-  else if(p==='plan'){navItems[4].classList.add('active');renderPlan();}
-  else if(p==='goals'){navItems[5].classList.add('active');renderGoals();}
+  if(p==='dashboard'){navItems[0].classList.add('active');document.getElementById('mob-dashboard')?.classList.add('active');}
+  else if(p==='expenses'){navItems[1].classList.add('active');document.getElementById('mob-expenses')?.classList.add('active');initIncomeAdj();renderExpenses();}
+  else if(p==='debt'){navItems[2].classList.add('active');}
+  else if(p==='ledger'){navItems[3].classList.add('active');document.getElementById('mob-ledger')?.classList.add('active');renderLedger();}
+  else if(p==='plan'){navItems[4].classList.add('active');document.getElementById('mob-plan')?.classList.add('active');renderPlan();}
+  else if(p==='goals'){navItems[5].classList.add('active');document.getElementById('mob-goals')?.classList.add('active');renderGoals();}
   else if(p==='invest'){navItems[6].classList.add('active');renderInvest();}
+  // Scroll to top on mobile
+  document.querySelector('.main-wrap')?.scrollTo(0,0);
 }
+
+function showMobileMenu() { document.getElementById('mobile-more-menu').style.display = 'flex'; }
+function hideMobileMenu() { document.getElementById('mobile-more-menu').style.display = 'none'; }
 
 function renderAll(){renderExpenses();renderDebts();renderGoals();renderLedger();initMonthSelect();}
 
@@ -915,6 +1599,7 @@ function adjustIncome(){
   appState.incomeOther=+document.getElementById('adj-other').value||0;
   baseIncome={net:appState.incomeNet,spouse:appState.incomeSpouse,other:appState.incomeOther};
   updateAdjTotal();recalculate();renderExpenses();
+  scheduleSave(); // 自動儲存到 Supabase
 }
 function updateAdjTotal(){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;document.getElementById('adj-total').textContent='$'+t.toLocaleString();}
 function simIncome(factor){
@@ -922,38 +1607,71 @@ function simIncome(factor){
   document.getElementById('adj-income').value=sn||'';document.getElementById('adj-spouse').value=ss||'';document.getElementById('adj-other').value=so||'';
   appState.incomeNet=sn;appState.incomeSpouse=ss;appState.incomeOther=so;
   updateAdjTotal();recalculate();renderExpenses();
+  // 模擬只更新畫面，不儲存（避免覆蓋正式收入）
+  // 如需儲存模擬結果，手動修改欄位後自動存
 }
 function setExpMode(mode){expMode=mode;document.getElementById('mode-fixed-btn').classList.toggle('active',mode==='fixed');document.getElementById('mode-ratio-btn').classList.toggle('active',mode==='ratio');renderExpenses();}
 function getExpAmount(e){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;if(e.useRatio&&e.ratio>0)return Math.round(t*e.ratio/100);return +e.amount||0;}
 
 function renderExpenses(){
   const c=document.getElementById('exp-list'),header=document.getElementById('exp-list-header');
-  if(!c)return;c.innerHTML='';
+  if(!c)return; c.innerHTML='';
   const totalIncome=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;
-  if(expMode==='fixed'){header.style.gridTemplateColumns='130px 1fr 140px 30px';header.innerHTML='<span>類別</span><span>項目名稱</span><span>每月金額</span><span></span>';}
-  else{header.style.gridTemplateColumns='130px 1fr 60px 80px 110px 30px';header.innerHTML='<span>類別</span><span>項目名稱</span><span>模式</span><span>比例%</span><span>計算金額</span><span></span>';}
-  appState.expenses.forEach(e=>{
-    const row=document.createElement('div');row.id='exp-'+e.id;
-    const computedAmt=getExpAmount(e);
-    const sel=EXP_CATS.map(c=>`<option${c===e.cat?' selected':''}>${c}</option>`).join('');
-    const is='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s';
-    const ss='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.8rem;outline:none;font-family:"Noto Sans TC",sans-serif;width:100%';
-    if(expMode==='fixed'){
-      row.style.cssText='display:grid;grid-template-columns:130px 1fr 140px 30px;gap:8px;align-items:center;margin-bottom:8px';
-      row.innerHTML=`<select onchange="updateExp(${e.id},'cat',this.value)" style="${ss}">${sel}</select><input type="text" value="${e.name||''}" placeholder="名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is}"><input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is}"><button class="btn-del" onclick="removeExp(${e.id})">✕</button>`;
-    } else {
-      row.style.cssText='display:grid;grid-template-columns:130px 1fr 60px 80px 110px 30px;gap:8px;align-items:center;margin-bottom:8px';
-      const useR=e.useRatio?true:false;
-      row.innerHTML=`<select onchange="updateExp(${e.id},'cat',this.value)" style="${ss}">${sel}</select><input type="text" value="${e.name||''}" placeholder="名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is}"><button onclick="toggleRatio(${e.id})" style="padding:5px 6px;border-radius:6px;border:1px solid ${useR?'var(--sky)':'var(--line2)'};background:${useR?'rgba(79,157,232,0.15)':'transparent'};color:${useR?'var(--sky)':'var(--muted)'};font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">${useR?'比例':'固定'}</button>${useR?`<div style="position:relative"><input type="number" value="${e.ratio||''}" placeholder="10" step="0.1" min="0" max="100" oninput="updateExp(${e.id},'ratio',+this.value)" style="${is};padding-right:22px"><span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--sky);font-size:0.75rem;pointer-events:none">%</span></div>`:`<input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is}">`}<div class="computed-amt" id="comp-${e.id}">$${computedAmt.toLocaleString()}${useR&&totalIncome>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${totalIncome.toLocaleString()}</div>`:''}</div><button class="btn-del" onclick="removeExp(${e.id})">✕</button>`;
-    }
-    c.appendChild(row);
-  });
+  const isMobile=window.innerWidth<=700;
+  const is='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:0.83rem;outline:none;width:100%;transition:border-color 0.2s';
+  const ss='background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.8rem;outline:none;font-family:"Noto Sans TC",sans-serif;width:100%';
+
+  if(isMobile){
+    // 手機：隱藏 header，用卡片式佈局
+    header.innerHTML='';
+    appState.expenses.forEach(e=>{
+      const row=document.createElement('div');
+      row.id='exp-'+e.id;
+      row.className='exp-row-mobile';
+      const computedAmt=getExpAmount(e);
+      const sel=EXP_CATS.map(c=>`<option${c===e.cat?' selected':''}>${c}</option>`).join('');
+      const useR=e.useRatio&&expMode==='ratio';
+      row.innerHTML=`
+        <div class="exp-top">
+          <select onchange="updateExp(${e.id},'cat',this.value)" style="${ss};flex:0 0 110px">${sel}</select>
+          <input type="text" value="${e.name||''}" placeholder="項目名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is};flex:1">
+          <button class="btn-del" onclick="removeExp(${e.id})" style="flex-shrink:0">✕</button>
+        </div>
+        <div class="exp-bot">
+          ${expMode==='ratio'?`<button onclick="toggleRatio(${e.id})" style="padding:6px 10px;border-radius:6px;border:1px solid ${useR?'var(--sky)':'var(--line2)'};background:${useR?'rgba(79,157,232,0.15)':'transparent'};color:${useR?'var(--sky)':'var(--muted)'};font-size:0.75rem;cursor:pointer;white-space:nowrap;font-family:'Noto Sans TC',sans-serif">${useR?'比例':'固定'}</button>`:``}
+          ${useR
+            ?`<input type="number" value="${e.ratio||''}" placeholder="%" step="0.1" min="0" max="100" oninput="updateExp(${e.id},'ratio',+this.value)" style="${is};max-width:80px">`
+            :`<input type="number" value="${e.amount||''}" placeholder="每月金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is};flex:1">`
+          }
+          <div id="comp-${e.id}" style="font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--teal);white-space:nowrap">$${computedAmt.toLocaleString()}</div>
+        </div>`;
+      c.appendChild(row);
+    });
+  } else {
+    // 桌面：原本的 grid 佈局
+    if(expMode==='fixed'){header.style.gridTemplateColumns='130px 1fr 140px 30px';header.innerHTML='<span>類別</span><span>項目名稱</span><span>每月金額</span><span></span>';}
+    else{header.style.gridTemplateColumns='130px 1fr 60px 90px 110px 30px';header.innerHTML='<span>類別</span><span>項目名稱</span><span>模式</span><span>比例%</span><span>計算金額</span><span></span>';}
+    appState.expenses.forEach(e=>{
+      const row=document.createElement('div'); row.id='exp-'+e.id;
+      const computedAmt=getExpAmount(e);
+      const sel=EXP_CATS.map(c=>`<option${c===e.cat?' selected':''}>${c}</option>`).join('');
+      const useR=e.useRatio&&expMode==='ratio';
+      if(expMode==='fixed'){
+        row.style.cssText='display:grid;grid-template-columns:130px 1fr 140px 30px;gap:8px;align-items:center;margin-bottom:8px';
+        row.innerHTML=`<select onchange="updateExp(${e.id},'cat',this.value)" style="${ss}">${sel}</select><input type="text" value="${e.name||''}" placeholder="名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is}"><input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is}"><button class="btn-del" onclick="removeExp(${e.id})">✕</button>`;
+      } else {
+        row.style.cssText='display:grid;grid-template-columns:130px 1fr 60px 90px 110px 30px;gap:8px;align-items:center;margin-bottom:8px';
+        row.innerHTML=`<select onchange="updateExp(${e.id},'cat',this.value)" style="${ss}">${sel}</select><input type="text" value="${e.name||''}" placeholder="名稱" onchange="updateExp(${e.id},'name',this.value)" style="${is}"><button onclick="toggleRatio(${e.id})" style="padding:5px 6px;border-radius:6px;border:1px solid ${useR?'var(--sky)':'var(--line2)'};background:${useR?'rgba(79,157,232,0.15)':'transparent'};color:${useR?'var(--sky)':'var(--muted)'};font-size:0.68rem;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap">${useR?'比例':'固定'}</button>${useR?`<div style="position:relative"><input type="number" value="${e.ratio||''}" placeholder="10" step="0.1" min="0" max="100" oninput="updateExp(${e.id},'ratio',+this.value)" style="${is};padding-right:22px"><span style="position:absolute;right:9px;top:50%;transform:translateY(-50%);color:var(--sky);font-size:0.75rem;pointer-events:none">%</span></div>`:`<input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateExp(${e.id},'amount',+this.value)" style="${is}">`}<div class="computed-amt" id="comp-${e.id}">$${computedAmt.toLocaleString()}${useR&&totalIncome>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${totalIncome.toLocaleString()}</div>`:''}</div><button class="btn-del" onclick="removeExp(${e.id})">✕</button>`;
+      }
+      c.appendChild(row);
+    });
+  }
   recalculate();
 }
-function toggleRatio(id){const e=appState.expenses.find(e=>e.id===id);if(!e)return;e.useRatio=!e.useRatio;if(e.useRatio&&!e.ratio){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;e.ratio=t>0?+((e.amount/t*100).toFixed(1)):10;}renderExpenses();}
-function addExpRow(){appState.expenses.push({id:Date.now(),cat:'其他',name:'',amount:0,useRatio:false,ratio:0});renderExpenses();}
-function removeExp(id){appState.expenses=appState.expenses.filter(e=>e.id!==id);renderExpenses();}
-function updateExp(id,k,v){const e=appState.expenses.find(e=>e.id===id);if(e){e[k]=v;if(k==='ratio'||k==='amount'){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;const a=getExpAmount(e);const comp=document.getElementById('comp-'+id);if(comp)comp.innerHTML='$'+a.toLocaleString()+(e.useRatio&&t>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${t.toLocaleString()}</div>`:'');}recalculate();scheduleSave();}}
+function toggleRatio(id){const e=appState.expenses.find(e=>e.id===id);if(!e)return;e.useRatio=!e.useRatio;if(e.useRatio&&!e.ratio){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;e.ratio=t>0?+((e.amount/t*100).toFixed(1)):10;}renderExpenses();scheduleSave();}
+function addExpRow(){appState.expenses.push({id:Date.now(),cat:'其他',name:'',amount:0,useRatio:false,ratio:0});renderExpenses();renderBudgetTracker();renderLedger();scheduleSave();}
+function removeExp(id){appState.expenses=appState.expenses.filter(e=>e.id!==id);renderExpenses();renderBudgetTracker();renderLedger();scheduleSave();}
+function updateExp(id,k,v){const e=appState.expenses.find(e=>e.id===id);if(e){e[k]=v;if(k==='ratio'||k==='amount'){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;const a=getExpAmount(e);const comp=document.getElementById('comp-'+id);if(comp)comp.innerHTML='$'+a.toLocaleString()+(e.useRatio&&t>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${t.toLocaleString()}</div>`:'');}if(k==='name'||k==='cat'){renderBudgetTracker();renderLedger();}recalculate();scheduleSave();}}
 
 function renderDebts(){
   const c=document.getElementById('debt-list');c.innerHTML='';
@@ -971,21 +1689,209 @@ function renderDebtStrategy(){
   document.getElementById('debt-strategy-body').innerHTML=h;
 }
 
-function renderLedger(){
-  const c=document.getElementById('ledger-list');c.innerHTML='';
-  if(!appState.ledger.length){c.innerHTML='<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">尚無記錄</div>';}
-  appState.ledger.forEach(e=>{const row=document.createElement('div');row.className='ledger-row';row.id='led-'+e.id;row.innerHTML=`<input type="date" value="${e.date||''}" onchange="updateLed(${e.id},'date',this.value)"><input type="text" value="${e.name||''}" placeholder="項目" onchange="updateLed(${e.id},'name',this.value)"><input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateLed(${e.id},'amount',+this.value)"><select onchange="updateLed(${e.id},'type',this.value)"><option${e.type==='expense'?' selected':''} value="expense">支出</option><option${e.type==='income'?' selected':''} value="income">收入</option></select><button class="btn-del" onclick="removeLed(${e.id})">✕</button>`;c.appendChild(row);});
-  updateLedgerTotals();
+// ══ 預算追蹤 ══
+function getCurrentMonthLabel() {
+  const sel = document.getElementById('ledger-month');
+  return sel ? sel.value : '';
 }
-function addLedgerRow(){const today=new Date().toISOString().split('T')[0];appState.ledger.push({id:Date.now(),date:today,name:'',amount:0,type:'expense'});renderLedger();}
-function removeLed(id){appState.ledger=appState.ledger.filter(e=>e.id!==id);renderLedger();scheduleSave();}
-function updateLed(id,k,v){const e=appState.ledger.find(e=>e.id===id);if(e){e[k]=v;updateLedgerTotals();scheduleSave();}}
-function updateLedgerTotals(){
-  const ti=appState.ledger.filter(e=>e.type==='income').reduce((s,e)=>s+(+e.amount||0),0);
-  const to=appState.ledger.filter(e=>e.type==='expense').reduce((s,e)=>s+(+e.amount||0),0);
-  document.getElementById('l-total-in').textContent='$'+ti.toLocaleString();
-  document.getElementById('l-total-out').textContent='$'+to.toLocaleString();
-  const net=ti-to;const el=document.getElementById('l-net');el.textContent='$'+net.toLocaleString();el.style.color=net>=0?'var(--teal)':'var(--rose)';
+
+function getExpenseNames() {
+  // 從固定支出取得項目名稱列表（支出類型，排除收入類）
+  return appState.expenses.filter(e => !['儲蓄','投資'].includes(e.cat)).map(e => ({
+    id: e.id, name: e.name || e.cat, amount: getExpAmount(e), cat: e.cat
+  }));
+}
+
+function renderBudgetTracker() {
+  const c = document.getElementById('budget-tracker');
+  if (!c) return;
+  const expNames = getExpenseNames();
+  if (!expNames.length) {
+    c.innerHTML = '<div style="color:var(--faint);font-size:0.82rem;padding:8px 0">請先在「收入與支出」新增支出項目</div>';
+    return;
+  }
+  const monthLabel = getCurrentMonthLabel();
+  // Get this month ledger entries that are expenses
+  const monthEntries = appState.ledger.filter(e => e.type === 'expense' && e.expenseRef);
+  // Days in current month
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const dayOfMonth = now.getDate();
+  const daysLeft = daysInMonth - dayOfMonth;
+
+  let html = '';
+  expNames.forEach(exp => {
+    const spent = monthEntries
+      .filter(e => e.expenseRef === String(exp.id))
+      .reduce((s,e) => s + (+e.amount||0), 0);
+    const budget = exp.amount;
+    const remaining = budget - spent;
+    const pct = budget > 0 ? Math.min(100, Math.round(spent/budget*100)) : 0;
+    const isRecurring = !['通訊','保險','訂閱'].includes(exp.cat); // non-one-time
+    const dailyLeft = isRecurring && daysLeft > 0 ? Math.round(remaining / daysLeft) : null;
+    const barColor = pct >= 100 ? 'var(--rose)' : pct >= 80 ? 'var(--gold)' : 'var(--teal)';
+    const remColor = remaining < 0 ? 'color:var(--rose)' : remaining < budget*0.2 ? 'color:var(--gold2)' : 'color:var(--teal)';
+
+    html += `<div class="budget-item-row" style="display:grid;grid-template-columns:1fr 200px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(44,53,80,0.4)">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+          <span style="font-size:0.85rem;font-weight:500">${exp.name}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted)">$${spent.toLocaleString()} / $${budget.toLocaleString()}</span>
+        </div>
+        <div style="height:5px;background:var(--ink4);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.6s"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;text-align:right">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.88rem;${remColor}">剩 $${remaining.toLocaleString()}</span>
+        ${dailyLeft !== null ? `<span style="font-size:0.7rem;color:var(--faint)">每日可用 $${Math.max(0,dailyLeft).toLocaleString()}（剩${daysLeft}天）</span>` : '<span style="font-size:0.7rem;color:var(--faint)">固定費用</span>'}
+      </div>
+    </div>`;
+  });
+  c.innerHTML = html || '<div style="color:var(--faint);font-size:0.82rem">本月尚無支出記錄</div>';
+}
+
+function renderLedger() {
+  const c = document.getElementById('ledger-list');
+  c.innerHTML = '';
+
+  // ③ 最新到最舊排序
+  const sorted = [...appState.ledger].sort((a, b) => {
+    const da = a.date || '0000-00-00';
+    const db = b.date || '0000-00-00';
+    if (db !== da) return db.localeCompare(da);
+    return b.id - a.id; // 同日期，新增的在前
+  });
+
+  if (!sorted.length) {
+    c.innerHTML = '<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">尚無記錄，點＋新增</div>';
+    updateLedgerTotals(); renderBudgetTracker(); return;
+  }
+
+  const expNames = getExpenseNames();
+  const isMob = window.innerWidth <= 700;
+
+  // 共用 input style
+  const is2 = 'background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:0.9rem;outline:none;width:100%;-webkit-appearance:none';
+  const ss2 = 'background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-family:"Noto Sans TC",sans-serif;font-size:0.9rem;outline:none;width:100%;-webkit-appearance:none';
+
+  sorted.forEach(e => {
+    const row = document.createElement('div');
+    row.className = 'ledger-row'; row.id = 'led-' + e.id;
+    const isExp = e.type === 'expense';
+
+    // 支出項目下拉
+    const expSel = `<select onchange="updateLed(${e.id},'expenseRef',this.value);updateLedBudgetHint(${e.id})" style="${ss2}">
+      <option value="">— 選擇支出項目 —</option>
+      ${expNames.map(en => `<option value="${en.id}"${e.expenseRef===String(en.id)?' selected':''}>${en.name}</option>`).join('')}
+    </select>`;
+
+    // ② 支出明細（自由輸入）
+    const detailInput = `<input type="text" value="${e.detail||''}" placeholder="支出明細（選填，例：麥當勞）" onchange="updateLed(${e.id},'detail',this.value)" style="${is2}">`;
+
+    // 收入項目名稱
+    const nameInput = `<input type="text" value="${e.name||''}" placeholder="收入說明" onchange="updateLed(${e.id},'name',this.value)" style="${is2}">`;
+
+    const typeSelect = `<select onchange="updateLed(${e.id},'type',this.value);renderLedger()" style="${ss2}">
+      <option${e.type==='expense'?' selected':''} value="expense">支出</option>
+      <option${e.type==='income'?' selected':''} value="income">收入</option>
+    </select>`;
+
+    const budgetHint = isExp && e.expenseRef
+      ? `<div id="budget-hint-${e.id}" style="font-size:0.72rem;color:var(--sky);margin-top:4px;font-family:'JetBrains Mono',monospace;padding:0 2px"></div>`
+      : '';
+
+    if (isMob) {
+      // ① 手機：大按鈕卡片式，欄位放大易點擊
+      row.innerHTML = `
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <input type="date" value="${e.date||''}" onchange="updateLed(${e.id},'date',this.value)"
+            style="${is2};flex:1;min-width:0;font-size:0.85rem">
+          ${typeSelect.replace('style="', 'style="flex:0 0 80px;')}
+          <button class="btn-del" onclick="removeLed(${e.id})"
+            style="flex-shrink:0;width:36px;height:36px;font-size:1rem;border-radius:8px;border:1px solid var(--line);background:var(--ink3);color:var(--rose);cursor:pointer">✕</button>
+        </div>
+        ${isExp ? `
+        <div style="margin-bottom:8px">
+          <div style="font-size:0.7rem;color:var(--faint);margin-bottom:4px;letter-spacing:0.05em">支出項目</div>
+          ${expSel}
+          ${budgetHint}
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:0.7rem;color:var(--faint);margin-bottom:4px;letter-spacing:0.05em">支出明細（選填）</div>
+          ${detailInput}
+        </div>` : `
+        <div style="margin-bottom:8px">
+          <div style="font-size:0.7rem;color:var(--faint);margin-bottom:4px;letter-spacing:0.05em">收入說明</div>
+          ${nameInput}
+        </div>`}
+        <div>
+          <div style="font-size:0.7rem;color:var(--faint);margin-bottom:4px;letter-spacing:0.05em">金額</div>
+          <input type="number" value="${e.amount||''}" placeholder="0" oninput="updateLed(${e.id},'amount',+this.value)"
+            style="${is2};font-size:1.1rem;font-weight:500;color:${isExp?'var(--rose)':'var(--teal)'}">
+        </div>`;
+    } else {
+      // 桌面版
+      row.innerHTML = `
+        <input type="date" value="${e.date||''}" onchange="updateLed(${e.id},'date',this.value)" style="${is2}">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${isExp ? expSel : nameInput}
+          ${isExp ? detailInput : ''}
+          ${budgetHint}
+        </div>
+        <input type="number" value="${e.amount||''}" placeholder="金額" oninput="updateLed(${e.id},'amount',+this.value)" style="${is2}">
+        ${typeSelect}
+        <button class="btn-del" onclick="removeLed(${e.id})">✕</button>`;
+    }
+    c.appendChild(row);
+    if (isExp && e.expenseRef) setTimeout(() => updateLedBudgetHint(e.id), 0);
+  });
+  updateLedgerTotals();
+  renderBudgetTracker();
+}
+
+function updateLedBudgetHint(id) {
+  const e = appState.ledger.find(e => e.id === id);
+  const hint = document.getElementById('budget-hint-' + id);
+  if (!e || !hint || !e.expenseRef) return;
+  const exp = getExpenseNames().find(en => String(en.id) === String(e.expenseRef));
+  if (!exp) return;
+  const spent = appState.ledger
+    .filter(l => l.type === 'expense' && String(l.expenseRef) === String(exp.id))
+    .reduce((s,l) => s + (+l.amount||0), 0);
+  const rem = exp.amount - spent;
+  hint.textContent = `預算 $${exp.amount.toLocaleString()} · 已用 $${spent.toLocaleString()} · 剩 $${rem.toLocaleString()}`;
+  hint.style.color = rem < 0 ? 'var(--rose)' : rem < exp.amount*0.2 ? 'var(--gold2)' : 'var(--sky)';
+}
+
+function addLedgerRow() {
+  const today = new Date().toISOString().split('T')[0];
+  appState.ledger.unshift({id:Date.now(), date:today, name:'', detail:'', amount:0, type:'expense', expenseRef:''});
+  renderLedger();
+}
+function removeLed(id) { appState.ledger = appState.ledger.filter(e=>e.id!==id); renderLedger(); scheduleSave(); }
+function updateLed(id, k, v) {
+  const e = appState.ledger.find(e=>e.id===id);
+  if (e) {
+    e[k] = v;
+    if (k === 'expenseRef' && v) {
+      const exp = getExpenseNames().find(en => String(en.id) === String(v));
+      if (exp) e.name = exp.name;
+    }
+    updateLedgerTotals();
+    renderBudgetTracker();
+    scheduleSave();
+  }
+}
+function updateLedgerTotals() {
+  const ti = appState.ledger.filter(e=>e.type==='income').reduce((s,e)=>s+(+e.amount||0),0);
+  const to = appState.ledger.filter(e=>e.type==='expense').reduce((s,e)=>s+(+e.amount||0),0);
+  document.getElementById('l-total-in').textContent = '$'+ti.toLocaleString();
+  document.getElementById('l-total-out').textContent = '$'+to.toLocaleString();
+  const net = ti-to;
+  const el = document.getElementById('l-net');
+  el.textContent = '$'+net.toLocaleString();
+  el.style.color = net>=0 ? 'var(--teal)' : 'var(--rose)';
 }
 
 function renderGoals(){
@@ -1056,36 +1962,385 @@ function updateCharts(){
 }
 
 function renderPlan(){
-  const s=appState,totalIncome=s.incomeNet+s.incomeSpouse+s.incomeOther;
+  const s=appState, totalIncome=s.incomeNet+s.incomeSpouse+s.incomeOther;
   const totalExp=s.expenses.reduce((sum,e)=>sum+getExpAmount(e),0);
-  const balance=totalIncome-totalExp,totalDebt=s.debts.reduce((sum,d)=>sum+(+d.amount||0),0);
+  const balance=totalIncome-totalExp;
+  const totalDebt=s.debts.reduce((sum,d)=>sum+(+d.amount||0),0);
   const ratio=totalIncome>0?totalExp/totalIncome:0;
   if(!totalIncome){document.getElementById('plan-body').innerHTML='<div class="alert warn"><span class="alert-icon">⚠️</span>請先完成設定精靈填寫收入資料。</div>';return;}
+
   const hasChildren=obData.marital?.includes('小孩')||obData.marital==='單親';
   const tithe=s.expenses.find(e=>e.name.includes('奉獻'))?getExpAmount(s.expenses.find(e=>e.name.includes('奉獻'))):0;
-  const savingsMonthly=s.expenses.filter(e=>e.cat==='儲蓄').reduce((s,e)=>s+getExpAmount(e),0);
-  const investMonthly=s.expenses.filter(e=>e.cat==='投資').reduce((s,e)=>s+getExpAmount(e),0);
+  const savingsMonthly=s.expenses.filter(e=>e.cat==='儲蓄').reduce((sum,e)=>sum+getExpAmount(e),0);
+  const investMonthly=s.expenses.filter(e=>e.cat==='投資').reduce((sum,e)=>sum+getExpAmount(e),0);
   const debtMinPay=s.debts.reduce((sum,d)=>sum+(+d.minPay||0),0);
   const extraDebt=totalDebt>0?Math.min(balance*0.25,Math.round(totalIncome*0.05)):0;
-  const suggestInvest=Math.round(totalIncome*0.15);
-  const suggestFlex=Math.max(0,balance-extraDebt-suggestInvest);
-  const emergGoal=s.goals.find(g=>g.name.includes('緊急'));
+  const emergGoal=s.goals.find(g=>g.name?.includes('緊急'));
+
+  // ── 建議值計算 ──
+  // 參考 50/30/20 法則，並依台灣實況調整
+  const suggestSavings = savingsMonthly || Math.round(totalIncome*0.08);  // 至少 8%
+  const suggestInvest  = investMonthly  || Math.round(totalIncome*0.15);  // 建議 15%
+  const suggestFlex    = Math.max(0, balance - extraDebt - (investMonthly||suggestInvest));
+
+  // 百分比計算（顯示用）
+  const pct = (amt) => totalIncome > 0 ? (amt/totalIncome*100).toFixed(1) : '0.0';
+
+  // ── 健康狀態 banner ──
   let html='';
-  if(ratio>0.8)html+=`<div class="alert bad"><span class="alert-icon">🚨</span><div><strong>警示：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，超出安全線，請立即縮減非必要支出。</div></div>`;
-  else if(ratio>0.65)html+=`<div class="alert warn"><span class="alert-icon">⚠️</span><div><strong>支出偏高：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，建議控制在 65% 以內。</div></div>`;
-  else html+=`<div class="alert ok"><span class="alert-icon">✅</span><div><strong>財務結構健康：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，繼續保持！</div></div>`;
+  if(ratio>0.8)
+    html+=`<div class="alert bad"><span class="alert-icon">🚨</span><div><strong>警示：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，超出安全線（80%），請立即縮減非必要支出。</div></div>`;
+  else if(ratio>0.65)
+    html+=`<div class="alert warn"><span class="alert-icon">⚠️</span><div><strong>支出偏高：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，建議控制在 65% 以內，才有足夠空間儲蓄與投資。</div></div>`;
+  else
+    html+=`<div class="alert ok"><span class="alert-icon">✅</span><div><strong>財務結構健康：</strong>固定支出占收入 ${(ratio*100).toFixed(1)}%，低於 65% 警戒線，繼續保持！</div></div>`;
+
+  // ── 收入分配概覽 ──
+  html+=`<div class="card" style="background:rgba(212,168,67,0.03);border-color:var(--golddim)">
+    <div class="card-label">月收入分配概覽</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">月收入合計</div>
+        <div class="stat-v gold">$${totalIncome.toLocaleString()}</div>
+      </div>
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">固定支出</div>
+        <div class="stat-v rose">$${totalExp.toLocaleString()} <span style="font-size:0.7rem;color:var(--muted)">(${(ratio*100).toFixed(1)}%)</span></div>
+      </div>
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">儲蓄金額</div>
+        <div class="stat-v sky">$${suggestSavings.toLocaleString()} <span style="font-size:0.7rem;color:var(--muted)">(${pct(suggestSavings)}%)</span></div>
+      </div>
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">投資金額</div>
+        <div class="stat-v teal">$${(investMonthly||suggestInvest).toLocaleString()} <span style="font-size:0.7rem;color:var(--muted)">(${pct(investMonthly||suggestInvest)}%)</span></div>
+      </div>
+    </div>
+    <div style="height:10px;border-radius:5px;overflow:hidden;display:flex;gap:2px;margin-bottom:8px">
+      <div style="width:${pct(totalExp)}%;background:var(--rose);opacity:0.8;border-radius:3px 0 0 3px;transition:width 0.6s"></div>
+      <div style="width:${pct(suggestSavings)}%;background:var(--sky);opacity:0.8;transition:width 0.6s"></div>
+      <div style="width:${pct(investMonthly||suggestInvest)}%;background:var(--teal);opacity:0.8;transition:width 0.6s"></div>
+      <div style="flex:1;background:var(--ink4);border-radius:0 3px 3px 0"></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px 16px;font-size:0.72rem;color:var(--muted)">
+      <span><span style="color:var(--rose)">■</span> 固定支出 ${(ratio*100).toFixed(1)}%</span>
+      <span><span style="color:var(--sky)">■</span> 儲蓄 ${pct(suggestSavings)}%</span>
+      <span><span style="color:var(--teal)">■</span> 投資 ${pct(investMonthly||suggestInvest)}%</span>
+      <span><span style="color:var(--faint)">■</span> 彈性 ${pct(suggestFlex)}%</span>
+    </div>
+  </div>`;
+
+  // ── 每月資金分配建議（含百分比 + 原因） ──
   html+=`<div class="card"><div class="card-label">每月資金分配建議</div>`;
+
   const steps=[];
-  if(tithe>0)steps.push({title:'什一奉獻 / 慈善',badge:'badge-gold',desc:'優先履行奉獻，建議設定自動轉帳，每月固定執行。',amt:tithe,sub:'月收入10%'});
-  steps.push({title:'緊急預備金',badge:'badge-sky',desc:`目標：月支出 ×6 = $${(totalIncome*6).toLocaleString()}。${emergGoal?`目前已存 $${emergGoal.saved.toLocaleString()}，`:''}存放於高利活存或貨幣型基金。`,amt:savingsMonthly||Math.round(totalIncome*0.08),sub:'每月投入'});
-  if(totalDebt>0){const hd=s.debts.reduce((max,d)=>(+d.rate>+max.rate?d:max),{rate:0});steps.push({title:'加速清償債務',badge:'badge-rose',desc:`採雪崩法，優先清償 ${hd.name||'高利率債務'}（${hd.rate}%）。在最低還款外每月額外投入。`,amt:debtMinPay+extraDebt,sub:`含最低還款 $${debtMinPay.toLocaleString()}`});}
-  steps.push({title:'長期投資',badge:'badge-teal',desc:`穩健成長：0050 / 0056 定期定額為核心。${obData.marital?.includes('婚')?'個股控制在 20% 以內。':'時間是最大複利引擎。'}`,amt:investMonthly||suggestInvest,sub:'長期定期定額'});
-  if(hasChildren){const eduGoal=s.goals.find(g=>g.name.includes('教育'));steps.push({title:'孩子教育基金',badge:'badge-gold',desc:`${obData.ages?'孩子年齡：'+obData.ages+'。':''}越早開始越好，可配置至高股息 ETF 滾入再投資。`,amt:eduGoal?.monthly||2000,sub:'每月專款儲備'});}
-  steps.push({title:'彈性生活費',badge:'badge-sky',desc:'剩餘金額用於飲食、娛樂、醫療等。建議每月記帳追蹤。',amt:Math.max(0,suggestFlex),sub:'含飲食/娛樂'});
-  steps.forEach((s,i)=>{html+=`<div class="plan-item"><div class="plan-num">${i+1}</div><div class="plan-body"><div class="plan-t">${s.title} <span class="badge ${s.badge}">${s.badge.replace('badge-','')}</span></div><div class="plan-d">${s.desc}</div></div><div class="plan-amt">$${(s.amt||0).toLocaleString()}<small>${s.sub}</small></div></div>`;});
-  html+='</div>';
-  if(obData.goals?.includes('買房')){html+=`<div class="card"><div class="card-label">買房規劃路線</div><div class="alert info"><span class="alert-icon">🏠</span><div><strong>建議順序：</strong>先清除高利率債務 → 建立緊急預備金 → 開始存頭期款<br>頭期款建議房價 20-30%。房貸月付不超過月收入 35%，即 <strong>$${Math.round(totalIncome*0.35).toLocaleString()}/月</strong>。</div></div></div>`;}
+
+  if(tithe>0) steps.push({
+    title:'什一奉獻 / 慈善', badge:'badge-gold', amt:tithe,
+    pctStr: pct(tithe)+'%',
+    reason:'優先履行奉獻承諾，建議設定自動轉帳，每月固定執行，培養給予的習慣。',
+    sub:'月收入 10%'
+  });
+
+  steps.push({
+    title:'緊急預備金', badge:'badge-sky',
+    amt: suggestSavings,
+    pctStr: pct(suggestSavings)+'%',
+    reason:`建議目標：月支出 ×6 個月 = $${(totalExp*6).toLocaleString()}，作為失業、醫療突發的安全網。存放於高利活存或貨幣型基金，保持流動性。${emergGoal?` 目前已存 $${(emergGoal.saved||0).toLocaleString()}。`:''}`,
+    sub:'月收入建議 8-10%'
+  });
+
+  if(totalDebt>0){
+    const hd=s.debts.reduce((max,d)=>(+d.rate>+max.rate?d:max),{rate:0,name:''});
+    steps.push({
+      title:'加速清償債務', badge:'badge-rose',
+      amt: debtMinPay+extraDebt,
+      pctStr: pct(debtMinPay+extraDebt)+'%',
+      reason:`採雪崩法，優先清償利率最高的「${hd.name||'高利率債務'}」（${hd.rate}%年利）。債務利率通常高於投資報酬，還債 = 穩賺無風險報酬。`,
+      sub:`最低還款 $${debtMinPay.toLocaleString()} + 額外 $${extraDebt.toLocaleString()}`
+    });
+  }
+
+  const investAmt = investMonthly || suggestInvest;
+  const isUserSet = investMonthly > 0;
+  steps.push({
+    title:'長期投資', badge:'badge-teal',
+    amt: investAmt,
+    pctStr: pct(investAmt)+'%',
+    reason:`${isUserSet?'依你設定的投資金額。':'建議月收入 15% 投入長期投資，以複利累積財富。'}核心配置：0050（大盤）+ 0056（高股息）定期定額，不猜市場高低點。${obData.marital?.includes('婚')?'個股建議控制在 20% 以內，降低集中風險。':'時間是最大複利引擎，越早開始效果越顯著。'}`,
+    sub: isUserSet ? '依設定金額' : '建議月收入 15%'
+  });
+
+  if(hasChildren){
+    const eduGoal=s.goals.find(g=>g.name?.includes('教育'));
+    steps.push({
+      title:'孩子教育基金', badge:'badge-gold',
+      amt: eduGoal?.monthly||2000,
+      pctStr: pct(eduGoal?.monthly||2000)+'%',
+      reason:`${obData.ages?'孩子年齡：'+obData.ages+'。':''}大學費用約 $100-200 萬，越早開始每月需求越低。建議配置至高股息 ETF 滾入再投資，長期累積。`,
+      sub:'每月專款儲備'
+    });
+  }
+
+  steps.push({
+    title:'彈性生活費', badge:'badge-sky',
+    amt: Math.max(0, suggestFlex),
+    pctStr: pct(Math.max(0,suggestFlex))+'%',
+    reason:'扣除固定支出、儲蓄、投資後的剩餘預算，用於飲食、娛樂、服飾、醫療等彈性開銷。建議每月記帳，避免無感超支。',
+    sub:'含飲食/娛樂/其他'
+  });
+
+  // 渲染每個 step（含百分比標籤 + 原因說明）
+  steps.forEach((step, i) => {
+    html += `
+      <div class="plan-item" style="align-items:flex-start;padding:14px 0">
+        <div class="plan-num" style="margin-top:3px">${i+1}</div>
+        <div class="plan-body" style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-size:0.92rem;font-weight:600">${step.title}</span>
+            <span class="badge ${step.badge}">${step.pctStr}</span>
+            <span style="font-size:0.72rem;color:var(--faint)">${step.sub}</span>
+          </div>
+          <div style="font-size:0.8rem;color:var(--muted);line-height:1.6;background:var(--ink3);border-radius:8px;padding:8px 10px;border-left:2px solid var(--golddim)">
+            💡 ${step.reason}
+          </div>
+        </div>
+        <div class="plan-amt" style="margin-left:12px;text-align:right;flex-shrink:0">
+          $${(step.amt||0).toLocaleString()}
+          <small style="display:block;color:var(--gold2);font-size:0.7rem">${step.pctStr} 收入</small>
+        </div>
+      </div>`;
+  });
+
+  html += '</div>';
+
+  // ── 儲蓄 / 投資目標卡片 ──
+  const targetSavings = totalExp * 6; // 緊急預備金目標
+  const targetInvest1y = Math.round(investAmt * 12);
+  const targetInvest5y = Math.round(investAmt * 12 * ((Math.pow(1.07,5)-1)/0.07));
+  const targetInvest10y = Math.round(investAmt * 12 * ((Math.pow(1.07,10)-1)/0.07));
+  const monthsToEmerg = suggestSavings > 0 ? Math.ceil(targetSavings / suggestSavings) : '—';
+
+  html += `<div class="card" style="border-color:var(--tealdim);background:rgba(62,207,178,0.03)">
+    <div class="card-label">建議儲蓄 / 投資目標</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:0.78rem;color:var(--sky);font-weight:500;margin-bottom:8px">🏦 緊急預備金目標</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+        <span style="font-size:0.82rem;color:var(--muted)">目標金額（月支出 ×6）</span>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--sky)">$${targetSavings.toLocaleString()}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:0.82rem;color:var(--muted)">每月存 $${suggestSavings.toLocaleString()}，預計達標</span>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--sky)">${monthsToEmerg} 個月</span>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:12px 0">
+    <div>
+      <div style="font-size:0.78rem;color:var(--teal);font-weight:500;margin-bottom:8px">📈 投資複利目標（每月 $${investAmt.toLocaleString()}，假設年報酬 7%）</div>
+      ${[
+        ['1 年後', Math.round(investAmt*12*((Math.pow(1.07,1)-1)/0.07))],
+        ['3 年後', Math.round(investAmt*12*((Math.pow(1.07,3)-1)/0.07))],
+        ['5 年後', targetInvest5y],
+        ['10 年後', targetInvest10y],
+        ['20 年後', Math.round(investAmt*12*((Math.pow(1.07,20)-1)/0.07))]
+      ].map(([label, val]) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(44,53,80,0.35)">
+          <span style="font-size:0.82rem;color:var(--muted)">${label}</span>
+          <div style="text-align:right">
+            <span style="font-family:'JetBrains Mono',monospace;color:var(--teal)">$${val.toLocaleString()}</span>
+            <span style="font-size:0.68rem;color:var(--faint);margin-left:6px">（本金 $${Math.round(investAmt*parseInt(label)*12/parseInt(label.split(' ')[0]||1)*parseInt(label.split(' ')[0]||1)).toLocaleString()} + 利息）</span>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+
+  if(obData.goals?.includes('買房')){
+    html+=`<div class="card"><div class="card-label">買房規劃路線</div><div class="alert info"><span class="alert-icon">🏠</span><div><strong>建議順序：</strong>先清除高利率債務 → 建立緊急預備金 → 開始存頭期款<br>頭期款建議房價 20-30%。房貸月付不超過月收入 35%，即 <strong>$${Math.round(totalIncome*0.35).toLocaleString()}/月</strong>。</div></div></div>`;
+  }
+
+  // ══════════════════════════════════════
+  // ① 本月執行進度：計劃 vs 實際記帳
+  // ══════════════════════════════════════
+  const now = new Date();
+  const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const monthLedger = s.ledger.filter(e => e.date?.startsWith(ym));
+  const actualOut = monthLedger.filter(e => e.type==='expense').reduce((sum,e)=>sum+(+e.amount||0),0);
+  const actualIn  = monthLedger.filter(e => e.type==='income').reduce((sum,e)=>sum+(+e.amount||0),0);
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const daysPassed  = now.getDate();
+  const daysPct     = Math.round(daysPassed/daysInMonth*100);
+
+  // 各支出項目計劃 vs 實際
+  const expProgress = s.expenses.map(e => {
+    const budget = getExpAmount(e);
+    const spent = monthLedger
+      .filter(l => l.type==='expense' && (String(l.expenseRef)===String(e.id) || l.name===e.name))
+      .reduce((sum,l) => sum+(+l.amount||0), 0);
+    return { ...e, budget, spent, pct: budget>0 ? Math.min(120,Math.round(spent/budget*100)) : 0 };
+  }).filter(e => e.budget > 0);
+
+  // 計劃總支出 vs 實際
+  const planTotal   = steps.reduce((sum,st) => sum+(st.amt||0), 0);
+  const diffAmt     = actualOut - totalExp;
+  const diffColor   = diffAmt > 0 ? 'var(--rose)' : 'var(--teal)';
+  const diffSign    = diffAmt > 0 ? '+' : '';
+
+  html += `<div class="card" style="border-color:rgba(79,157,232,0.3);background:rgba(79,157,232,0.03)">
+    <div class="card-label">本月執行進度 <span style="font-size:0.72rem;color:var(--faint);font-weight:400">${now.getMonth()+1}月・已過 ${daysPct}%（${daysPassed}/${daysInMonth} 天）</span></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">計劃支出</div>
+        <div class="stat-v" style="color:var(--gold2)">$${totalExp.toLocaleString()}</div>
+      </div>
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">實際支出</div>
+        <div class="stat-v" style="color:${actualOut>totalExp?'var(--rose)':'var(--teal)'}">$${actualOut.toLocaleString()}</div>
+      </div>
+      <div class="stat" style="padding:10px 12px">
+        <div class="stat-l">差異</div>
+        <div class="stat-v" style="color:${diffColor}">${diffSign}$${Math.abs(diffAmt).toLocaleString()}</div>
+      </div>
+    </div>
+
+    ${expProgress.length > 0 ? `
+    <div style="font-size:0.72rem;color:var(--faint);letter-spacing:0.08em;margin-bottom:8px">各項目使用率</div>
+    ${expProgress.map(e => {
+      const barColor = e.pct>=100?'var(--rose)':e.pct>=75?'var(--gold2)':'var(--teal)';
+      const status   = e.pct>=100?'⚠ 超出':'';
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:3px">
+          <span style="color:var(--text)">${e.name||e.cat} ${status}</span>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--muted)">$${e.spent.toLocaleString()} / $${e.budget.toLocaleString()} (${e.pct}%)</span>
+        </div>
+        <div style="height:6px;background:var(--ink4);border-radius:3px;overflow:hidden">
+          <div style="width:${Math.min(100,e.pct)}%;height:100%;background:${barColor};border-radius:3px;transition:width 0.5s"></div>
+        </div>
+      </div>`;
+    }).join('')}` : `<div style="color:var(--faint);font-size:0.82rem">本月尚無記帳記錄。到「每月記帳」新增後即可看到執行進度。</div>`}
+
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:0.8rem;color:var(--muted)">
+      本月額外收入：<span style="color:var(--teal);font-family:'JetBrains Mono',monospace">+$${actualIn.toLocaleString()}</span>
+      &nbsp;·&nbsp; 月底預估結餘：<span style="color:var(--gold2);font-family:'JetBrains Mono',monospace">$${(totalIncome+actualIn-Math.max(actualOut,totalExp)).toLocaleString()}</span>
+    </div>
+  </div>`;
+
+  // ══════════════════════════════════════
+  // ② 一鍵套用分配方案到支出設定
+  // ══════════════════════════════════════
+  const missingCats = [];
+  const hasSavings = s.expenses.some(e=>e.cat==='儲蓄');
+  const hasInvest  = s.expenses.some(e=>e.cat==='投資');
+  if(!hasSavings) missingCats.push({cat:'儲蓄', name:'緊急預備金／儲蓄', amt:suggestSavings});
+  if(!hasInvest)  missingCats.push({cat:'投資', name:'長期投資', amt:suggestInvest});
+
+  if(missingCats.length > 0){
+    html += `<div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.04)">
+      <div class="card-label">套用 AI 建議到支出設定</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:12px">
+        以下項目在「收入與支出」中尚未設定，套用後會自動新增：
+      </div>
+      ${missingCats.map(m => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
+          <div>
+            <span style="font-size:0.88rem;color:var(--text)">${m.name}</span>
+            <span style="font-size:0.72rem;color:var(--faint);margin-left:8px">類別：${m.cat}</span>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;color:var(--gold2)">$${m.amt.toLocaleString()}/月</span>
+        </div>`).join('')}
+      <button onclick="applyPlanToExpenses()" style="margin-top:14px;width:100%;padding:11px;border-radius:10px;border:1px solid var(--golddim);background:rgba(212,168,67,0.1);color:var(--gold2);font-family:'Noto Sans TC',sans-serif;font-size:0.88rem;cursor:pointer;font-weight:500">
+        ◈ 套用建議到「收入與支出」
+      </button>
+    </div>`;
+  } else {
+    html += `<div class="alert ok" style="margin-bottom:0">
+      <span class="alert-icon">✅</span>
+      <div>儲蓄與投資項目已設定完成，與 AI 規劃建議一致。
+      <span style="color:var(--faint);font-size:0.78rem;margin-left:4px">可到「收入與支出」調整金額。</span></div>
+    </div>`;
+  }
+
+  // ══════════════════════════════════════
+  // ③ 目標追蹤整合：顯示每個目標達成預測
+  // ══════════════════════════════════════
+  if(s.goals.length > 0){
+    html += `<div class="card">
+      <div class="card-label">目標達成預測</div>
+      <div style="font-size:0.78rem;color:var(--faint);margin-bottom:12px">依目前每月投入金額推算，點「目標追蹤」頁面可更新已存金額。</div>`;
+
+    s.goals.forEach(g => {
+      const remaining = Math.max(0, (g.target||0) - (g.saved||0));
+      const monthly   = g.monthly || 0;
+      const months    = monthly > 0 ? Math.ceil(remaining / monthly) : null;
+      const years     = months ? (months/12).toFixed(1) : null;
+      const pctDone   = g.target > 0 ? Math.min(100, Math.round((g.saved||0)/g.target*100)) : 0;
+      const barColor  = pctDone>=75?'var(--teal)':pctDone>=40?'var(--gold2)':'var(--sky)';
+      const eta       = months === null ? '尚未設定每月投入'
+                      : months <= 0    ? '🎉 已達成！'
+                      : months < 12    ? `約 ${months} 個月後達成`
+                      : `約 ${years} 年後達成（${months} 個月）`;
+
+      // 如果每月投入低於 AI 建議，給出提示
+      const relatedStep = steps.find(st =>
+        (g.name?.includes('緊急') && st.title.includes('緊急')) ||
+        (g.name?.includes('投資') && st.title.includes('投資')) ||
+        (g.name?.includes('教育') && st.title.includes('教育'))
+      );
+      const gapAmt = relatedStep && monthly < relatedStep.amt ? relatedStep.amt - monthly : 0;
+
+      html += `
+        <div style="padding:12px 0;border-bottom:1px solid var(--line)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:1.1rem">${g.icon||'🎯'}</span>
+              <div>
+                <div style="font-size:0.88rem;font-weight:500">${g.name}</div>
+                <div style="font-size:0.72rem;color:var(--faint)">已存 $${(g.saved||0).toLocaleString()} / 目標 $${(g.target||0).toLocaleString()}</div>
+              </div>
+            </div>
+            <div style="text-align:right;font-size:0.78rem">
+              <div style="color:var(--gold2);font-family:'JetBrains Mono',monospace">${pctDone}%</div>
+              <div style="color:var(--faint);font-size:0.7rem">${eta}</div>
+            </div>
+          </div>
+          <div style="height:6px;background:var(--ink4);border-radius:3px;overflow:hidden;margin-bottom:${gapAmt>0?'8':'0'}px">
+            <div style="width:${pctDone}%;height:100%;background:${barColor};border-radius:3px;transition:width 0.5s"></div>
+          </div>
+          ${gapAmt > 0 ? `<div style="font-size:0.72rem;color:var(--gold2);padding:4px 8px;background:rgba(212,168,67,0.08);border-radius:6px">
+            💡 AI 建議每月投入 $${relatedStep.amt.toLocaleString()}，比目前多 $${gapAmt.toLocaleString()}，可提前 ${Math.round(remaining/relatedStep.amt - remaining/monthly)} 個月達成
+          </div>` : ''}
+        </div>`;
+    });
+
+    html += `<button onclick="showPage('goals')" style="margin-top:12px;width:100%;padding:10px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--muted);font-family:'Noto Sans TC',sans-serif;font-size:0.82rem;cursor:pointer">
+      → 前往目標追蹤更新進度
+    </button></div>`;
+  }
+
   document.getElementById('plan-body').innerHTML=html;
+}
+
+// ② 一鍵套用 AI 建議到支出設定
+function applyPlanToExpenses(){
+  const s = appState;
+  const totalIncome = s.incomeNet + s.incomeSpouse + s.incomeOther;
+  const hasSavings = s.expenses.some(e=>e.cat==='儲蓄');
+  const hasInvest  = s.expenses.some(e=>e.cat==='投資');
+  let added = 0;
+  if(!hasSavings){
+    s.expenses.push({id:Date.now(), cat:'儲蓄', name:'緊急預備金／儲蓄', amount:Math.round(totalIncome*0.08), useRatio:false, ratio:0});
+    added++;
+  }
+  if(!hasInvest){
+    s.expenses.push({id:Date.now()+1, cat:'投資', name:'長期投資', amount:Math.round(totalIncome*0.15), useRatio:false, ratio:0});
+    added++;
+  }
+  if(added > 0){
+    scheduleSave();
+    alert(`✓ 已新增 ${added} 個項目到「收入與支出」！
+請前往該頁面確認金額是否符合你的實際狀況。`);
+    showPage('expenses');
+  }
 }
 
 function renderInvest(){
@@ -1098,15 +2353,289 @@ function renderInvest(){
   document.getElementById('invest-body').innerHTML=h;
 }
 
-// ── INIT: check if already logged in ──
-initMonthSelect();
-sb.auth.getSession().then(({data:{session}})=>{
-  if(!session){
-    // Not logged in, show login screen
-    document.getElementById('login-screen').style.display='flex';
+// ── INIT ──
+async function enterApp(user) {
+  currentUser = user;
+  appInitialized = true;
+  document.getElementById('login-screen').style.display = 'none';
+  showLoading('正在載入你的財務資料…');
+  try {
+    await loadUserData();
+  } catch(e) {
+    console.error('[理財助手] loadUserData error:', e);
+    document.getElementById('onboarding').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    renderObSlide();
   }
-  // If logged in, onAuthStateChange will handle it
-});
+  hideLoading();
+}
+
+function startApp() {
+  // 先處理 OAuth callback（Google 登入後回來的情況）
+  const oauthHandled = handleOAuthCallback();
+  console.log('[startApp] oauthHandled:', oauthHandled, 'hash:', window.location.hash.substring(0,30));
+
+  // 取得 session（getSession 內也會呼叫 handleOAuthCallback，確保處理）
+  sb.auth.getSession().then(async ({data:{session}}) => {
+    console.log('[startApp] session:', session ? session.user?.email : 'none');
+    if (session && session.user) {
+      await enterApp(session.user);
+    } else {
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  });
+
+  initMonthSelect();
+}
+initSupabase();
+
+// ════════════════════════════════════════════════════
+//  AI 財務助理
+// ════════════════════════════════════════════════════
+let aiChatOpen = false;
+let aiHistory  = []; // 對話歷史
+
+function openAIChat() {
+  aiChatOpen = true;
+  document.getElementById('ai-drawer').style.display = 'block';
+  // 第一次開啟顯示歡迎訊息
+  const msgs = document.getElementById('ai-messages');
+  if (!msgs.children.length) {
+    const name = obData?.name ? obData.name : '你';
+    appendAIMsg('ai', `嗨 ${name}！我是你的 AI 財務助理 ✦
+
+我可以幫你：
+・直接記帳：「早餐 80」「薪水 52000」
+・分析財務：「這個月花太多了嗎？」
+・即時顧問：「我可以買 AirPods 嗎？」
+・自動分類：貼上任何消費文字讓我解析`);
+  }
+  setTimeout(() => document.getElementById('ai-input').focus(), 300);
+}
+
+function closeAIChat() {
+  aiChatOpen = false;
+  document.getElementById('ai-drawer').style.display = 'none';
+}
+
+function appendAIMsg(role, text, extra = '') {
+  const msgs = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  const avatar = role === 'ai' ? '✦' : (obData?.name?.[0] || '我');
+  // 把換行符號轉成 <br>，並保留原始文字
+  const safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
+/g,'<br>');
+  div.innerHTML = `
+    <div class="ai-msg-avatar">${avatar}</div>
+    <div>
+      <div class="ai-msg-bubble">${safeText}</div>
+      ${extra}
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function showAITyping() {
+  const msgs = document.getElementById('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai';
+  div.id = 'ai-typing-indicator';
+  div.innerHTML = `
+    <div class="ai-msg-avatar">✦</div>
+    <div class="ai-msg-bubble">
+      <div class="ai-typing"><span></span><span></span><span></span></div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeAITyping() {
+  const el = document.getElementById('ai-typing-indicator');
+  if (el) el.remove();
+}
+
+// 快速動作按鈕
+function aiQuick(type) {
+  const prompts = {
+    analyze:  '幫我分析本月的財務狀況，支出結構是否健康？',
+    overspend:'哪些項目本月已經超支或快超支了？',
+    advice:   '根據我的支出習慣，給我 3 個省錢的具體建議',
+    goal:     '我的目標達成進度如何？哪個目標最需要加強？'
+  };
+  document.getElementById('ai-input').value = prompts[type] || '';
+  sendAIMessage();
+}
+
+// 建立給 Gemini 的財務上下文
+function buildFinanceContext() {
+  const s = appState;
+  const totalIncome = s.incomeNet + s.incomeSpouse + s.incomeOther;
+  const totalExp = s.expenses.reduce((sum,e) => sum + getExpAmount(e), 0);
+
+  const now = new Date();
+  const ym = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const monthLedger = s.ledger.filter(e => e.date?.startsWith(ym));
+  const actualOut = monthLedger.filter(e => e.type==='expense').reduce((sum,e) => sum+(+e.amount||0), 0);
+  const actualIn  = monthLedger.filter(e => e.type==='income').reduce((sum,e) => sum+(+e.amount||0), 0);
+
+  const expBreakdown = s.expenses.map(e => {
+    const budget = getExpAmount(e);
+    const spent = monthLedger
+      .filter(l => l.type==='expense' && (String(l.expenseRef)===String(e.id)||l.name===e.name))
+      .reduce((sum,l) => sum+(+l.amount||0), 0);
+    return `${e.name||e.cat}: 預算$${budget}, 已花$${spent}`;
+  }).join('; ');
+
+  const recentLedger = [...s.ledger]
+    .sort((a,b) => (b.date||'').localeCompare(a.date||''))
+    .slice(0, 20)
+    .map(e => `${e.date} ${e.name||''}${e.detail?' ('+e.detail+')':''} $${e.amount} ${e.type==='income'?'收入':'支出'}`)
+    .join('
+');
+
+  const goalsStr = s.goals.map(g =>
+    `${g.name}: 已存$${g.saved||0}/目標$${g.target||0}, 每月$${g.monthly||0}`
+  ).join('; ');
+
+  return `你是專業的台灣家庭財務顧問 AI，名字叫「理財助手 AI」。
+用戶資料：
+- 姓名：${obData?.name || '用戶'}
+- 家庭狀況：${obData?.marital || '未知'}
+- 月收入：$${totalIncome.toLocaleString()}（本人$${s.incomeNet}, 配偶$${s.incomeSpouse}, 其他$${s.incomeOther}）
+- 固定支出合計：$${totalExp.toLocaleString()}
+- 本月實際支出：$${actualOut.toLocaleString()}（預算$${totalExp.toLocaleString()}，${actualOut>totalExp?'超支$'+(actualOut-totalExp):'剩餘$'+(totalExp-actualOut)}）
+- 本月額外收入：$${actualIn.toLocaleString()}
+- 各項目執行：${expBreakdown || '無資料'}
+- 財務目標：${goalsStr || '尚未設定'}
+- 最近記帳：
+${recentLedger || '尚無記帳'}
+- 今天日期：${now.toLocaleDateString('zh-TW')}
+
+回答規則：
+1. 用繁體中文，語氣親切簡潔
+2. 金額用 $ 加數字格式
+3. 如果是記帳請求（例：「早餐80」「薪水50000」），回傳 JSON：{"action":"ledger","date":"YYYY-MM-DD","name":"項目名稱","amount":數字,"type":"expense或income","cat":"類別"}
+4. 如果是一般問題，直接回答，不要回傳 JSON
+5. 給建議時要具體，不要泛泛而談
+6. 回答控制在 200 字以內，重點優先`;
+}
+
+// 判斷是否為記帳意圖
+function isLedgerIntent(text) {
+  return /^\s*[\u4e00-\u9fa5a-zA-Z]+\s*[\d,，]+\s*$/.test(text.trim()) ||
+    /[\d,，]+\s*(元|塊|塊錢|NT\$|\$)/.test(text) ||
+    /(早餐|午餐|晚餐|早午餐|消夜|飲料|咖啡|便當|薪水|獎金|加班費|油錢|停車|捷運|計程車|Uber|購物|超市|藥局|醫院|水電|房租|保險|電話)/.test(text);
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById('ai-input');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  if (!GEMINI_KEY) {
+    appendAIMsg('ai', '⚠️ 請先在程式碼中填入 Gemini API Key（GEMINI_KEY 變數）
+
+前往 https://aistudio.google.com 取得免費 API Key');
+    return;
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+  appendAIMsg('user', text);
+  showAITyping();
+
+  // 加入對話歷史
+  aiHistory.push({ role: 'user', parts: [{ text }] });
+
+  try {
+    const systemCtx = buildFinanceContext();
+    // 組合對話（最多保留最近 10 輪）
+    const history = aiHistory.slice(-20);
+
+    const body = {
+      system_instruction: { parts: [{ text: systemCtx }] },
+      contents: history,
+      generationConfig: { temperature: 0.3, maxOutputTokens: 600 }
+    };
+
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }
+    );
+    const data = await resp.json();
+    removeAITyping();
+
+    let reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，我沒有收到回應，請再試一次。';
+
+    // 加入 AI 回覆到歷史
+    aiHistory.push({ role: 'model', parts: [{ text: reply }] });
+
+    // 嘗試解析是否為記帳 JSON
+    const jsonMatch = reply.match(/\{[\s\S]*"action"\s*:\s*"ledger"[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const today  = new Date().toISOString().split('T')[0];
+        const typeText = parsed.type === 'income' ? '收入' : '支出';
+        const emoji    = parsed.type === 'income' ? '💰' : '💸';
+
+        // 顯示確認卡片
+        const cardHtml = `<div class="ai-ledger-card">
+          <div class="ai-lc-title">確認記帳？</div>
+          <div class="ai-lc-row"><span style="color:var(--muted)">日期</span><span>${parsed.date||today}</span></div>
+          <div class="ai-lc-row"><span style="color:var(--muted)">項目</span><span>${parsed.name||'未知'}</span></div>
+          <div class="ai-lc-row"><span style="color:var(--muted)">金額</span><span style="color:${parsed.type==='income'?'var(--teal)':'var(--rose)'}">$${(parsed.amount||0).toLocaleString()}</span></div>
+          <div class="ai-lc-row"><span style="color:var(--muted)">類型</span><span>${emoji} ${typeText}</span></div>
+          <button class="ai-ledger-confirm-btn" onclick="confirmAILedger(${JSON.stringify(parsed).replace(/"/g,'&quot;')})">✓ 確認記帳</button>
+        </div>`;
+
+        appendAIMsg('ai', `${emoji} 我幫你記一筆：`, cardHtml);
+      } catch {
+        appendAIMsg('ai', reply.replace(/\{[\s\S]*\}/, '').trim() || '已解析記帳資料');
+      }
+    } else {
+      appendAIMsg('ai', reply);
+    }
+  } catch(e) {
+    removeAITyping();
+    appendAIMsg('ai', '連線失敗，請確認網路或 API Key 是否正確。');
+    console.error('Gemini error:', e);
+  }
+}
+
+// 確認記帳（寫入 ledger）
+function confirmAILedger(parsed) {
+  const today = new Date().toISOString().split('T')[0];
+  // 嘗試比對支出項目
+  const expNames = getExpenseNames();
+  const matched  = expNames.find(e =>
+    e.name && (e.name.includes(parsed.name) || parsed.name.includes(e.name))
+  );
+  appState.ledger.unshift({
+    id: Date.now(),
+    date: parsed.date || today,
+    name: parsed.name || '',
+    detail: parsed.detail || '',
+    amount: parsed.amount || 0,
+    type: parsed.type || 'expense',
+    expenseRef: matched ? String(matched.id) : ''
+  });
+  scheduleSave();
+
+  // 更新確認按鈕狀態
+  const btns = document.querySelectorAll('.ai-ledger-confirm-btn');
+  btns.forEach(b => {
+    b.textContent = '✓ 已記帳！';
+    b.style.background = 'rgba(62,207,178,0.2)';
+    b.style.borderColor = 'var(--tealdim)';
+    b.style.color = 'var(--teal)';
+    b.disabled = true;
+  });
+
+  appendAIMsg('ai', `✅ 已記帳！前往「每月記帳」頁面可查看或修改。`);
+}
 </script>
 </body>
 </html>
