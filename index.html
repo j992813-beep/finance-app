@@ -1224,36 +1224,18 @@ async function dbSave(key, value) {
     const sessionData = await sb.auth.getSession();
     const token = sessionData.data.session?.access_token;
     if (!token) {
-      console.warn('[dbSave] no token for key:', key, '— session:', sessionData.data.session);
+      console.warn('[dbSave] no token for key:', key);
       return false;
     }
-
-    // 先嘗試 UPDATE（有資料才 update）
-    const updateR = await fetch(
-      SUPABASE_URL + '/rest/v1/finance_data?user_id=eq.' + currentUser.id + '&key=eq.' + key,
-      {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_ANON,
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ value: JSON.stringify(value), updated_at: new Date().toISOString() })
-      }
-    );
-
-    // 如果 PATCH 回傳 204 代表成功更新
-    if (updateR.status === 204) return true;
-
-    // 否則 INSERT（第一次存）
-    const insertR = await fetch(SUPABASE_URL + '/rest/v1/finance_data', {
+    // 用 UPSERT（POST + Prefer: resolution=merge-duplicates）
+    // 這樣不管 row 存不存在都能正確寫入，避免 PATCH 在 0 筆時靜默失敗
+    const r = await fetch(SUPABASE_URL + '/rest/v1/finance_data', {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON,
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
+        'Prefer': 'return=minimal,resolution=merge-duplicates'
       },
       body: JSON.stringify({
         user_id: currentUser.id,
@@ -1262,13 +1244,15 @@ async function dbSave(key, value) {
         updated_at: new Date().toISOString()
       })
     });
-    const ok = insertR.ok || insertR.status === 201;
+    const ok = r.ok || r.status === 200 || r.status === 201 || r.status === 204;
     if (!ok) {
-      const errText = await insertR.text();
-      console.error('dbSave INSERT failed:', insertR.status, errText);
+      const errText = await r.text();
+      console.error('[dbSave] failed:', r.status, errText);
+    } else {
+      console.log('[dbSave]', key, '✓');
     }
     return ok;
-  } catch(e) { console.error('dbSave error:', e); return false; }
+  } catch(e) { console.error('[dbSave] error:', e); return false; }
 }
 
 async function dbLoadAll() {
@@ -1567,7 +1551,7 @@ function showPage(p){
   if(p==='dashboard'){navItems[0].classList.add('active');document.getElementById('mob-dashboard')?.classList.add('active');}
   else if(p==='expenses'){navItems[1].classList.add('active');document.getElementById('mob-expenses')?.classList.add('active');initIncomeAdj();renderExpenses();}
   else if(p==='debt'){navItems[2].classList.add('active');}
-  else if(p==='ledger'){navItems[3].classList.add('active');document.getElementById('mob-ledger')?.classList.add('active');renderLedger();}
+  else if(p==='ledger'){navItems[3].classList.add('active');document.getElementById('mob-ledger')?.classList.add('active');renderLedger();renderBudgetTracker();updateLedgerTotals();}
   else if(p==='plan'){navItems[4].classList.add('active');document.getElementById('mob-plan')?.classList.add('active');renderPlan();}
   else if(p==='goals'){navItems[5].classList.add('active');document.getElementById('mob-goals')?.classList.add('active');renderGoals();}
   else if(p==='invest'){navItems[6].classList.add('active');renderInvest();}
@@ -1698,7 +1682,7 @@ function getExpenseNames() {
 
 function renderBudgetTracker() {
   const c = document.getElementById('budget-tracker');
-  if (!c) return;
+  if (!c || c.offsetParent === null) return; // 頁面不可見時跳過，切回 ledger 頁時 showPage 會重呼叫
   const expNames = getExpenseNames();
   if (!expNames.length) {
     c.innerHTML = '<div style="color:var(--faint);font-size:0.82rem;padding:8px 0">請先在「收入與支出」新增支出項目</div>';
