@@ -866,6 +866,41 @@ let sb;
 // 輕量級 Supabase 客戶端（不依賴外部 SDK）
 // 使用原生 fetch 直接呼叫 Supabase REST API
 // ════════════════════════════════════════════
+// ── Handle OAuth callback（全域，供 startApp 使用）──
+function handleOAuthCallback() {
+  const hash = window.location.hash;
+  if (hash && hash.length > 1) {
+    const params = new URLSearchParams(hash.substring(1));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (access_token) {
+      try {
+        const payload = JSON.parse(atob(access_token.split('.')[1]));
+        const session = {
+          access_token, refresh_token,
+          user: { id: payload.sub, email: payload.email, user_metadata: payload.user_metadata || {} }
+        };
+        // 用全域暴露的 saveSession（由 initSupabase 設定）
+        if (typeof window._sbSaveSession === 'function') window._sbSaveSession(session);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        console.log('[OAuth] hash callback 成功，user:', payload.email);
+        return true;
+      } catch(e) { console.error('[OAuth] hash parse error:', e); }
+    }
+  }
+  const search = window.location.search;
+  if (search) {
+    const params = new URLSearchParams(search);
+    const error = params.get('error');
+    if (error) {
+      console.error('[OAuth] error:', error, params.get('error_description'));
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return false;
+    }
+  }
+  return false;
+}
+
 function initSupabase() {
   let _session = null;
 
@@ -1003,52 +1038,6 @@ function initSupabase() {
     window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=' + provider + '&redirect_to=' + redirectTo;
   }
 
-  // ── Handle OAuth callback（同時處理 hash 和 query string）──
-  function handleOAuthCallback() {
-    // 方法1：hash fragment（#access_token=...）
-    const hash = window.location.hash;
-    if (hash && hash.length > 1) {
-      const params = new URLSearchParams(hash.substring(1));
-      const access_token = params.get('access_token');
-      const refresh_token = params.get('refresh_token');
-      if (access_token) {
-        try {
-          const payload = JSON.parse(atob(access_token.split('.')[1]));
-          const session = {
-            access_token, refresh_token,
-            user: {
-              id: payload.sub,
-              email: payload.email,
-              user_metadata: payload.user_metadata || {}
-            }
-          };
-          saveSession(session);
-          // 清除 URL 中的 token
-          window.history.replaceState({}, document.title, window.location.pathname);
-          console.log('[OAuth] hash callback 成功，user:', payload.email);
-          return true;
-        } catch(e) { console.error('[OAuth] hash parse error:', e); }
-      }
-    }
-
-    // 方法2：query string（?code=... 或 ?error=...）
-    const search = window.location.search;
-    if (search) {
-      const params = new URLSearchParams(search);
-      const error = params.get('error');
-      const errorDesc = params.get('error_description');
-      if (error) {
-        console.error('[OAuth] error:', error, errorDesc);
-        // 清除錯誤參數
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return false;
-      }
-      // code 流程需要後端交換，我們的架構不支援，忽略
-    }
-
-    return false;
-  }
-
   // ── Database ──
   async function dbFetch(path, options) {
     const user = await getUser();
@@ -1065,6 +1054,9 @@ function initSupabase() {
     const data = text ? JSON.parse(text) : [];
     return { data, error: null };
   }
+
+  // 把 saveSession 暴露給全域（供 handleOAuthCallback 使用）
+  window._sbSaveSession = saveSession;
 
   // Build sb object
   sb = {
@@ -2371,11 +2363,7 @@ async function enterApp(user) {
 }
 
 function startApp() {
-  // 先處理 OAuth callback（Google 登入後回來的情況）
-  const oauthHandled = handleOAuthCallback();
-  console.log('[startApp] oauthHandled:', oauthHandled, 'hash:', window.location.hash.substring(0,30));
-
-  // 取得 session（getSession 內也會呼叫 handleOAuthCallback，確保處理）
+  // getSession 內部已處理 OAuth callback
   sb.auth.getSession().then(async ({data:{session}}) => {
     console.log('[startApp] session:', session ? session.user?.email : 'none');
     if (session && session.user) {
