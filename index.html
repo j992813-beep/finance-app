@@ -310,9 +310,18 @@
       <div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.03)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="card-label" style="margin-bottom:0">本月各項目預算追蹤</div>
-          <select id="ledger-month" onchange="renderLedger();renderBudgetTracker();updateLedgerTotals()" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.82rem;outline:none"></select>
+          <select id="ledger-month" onchange="renderLedger();renderBudgetTracker();renderSavingInvestTracker();updateLedgerTotals()" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.82rem;outline:none"></select>
         </div>
         <div id="budget-tracker"></div>
+      </div>
+
+      <!-- 儲蓄/投資追蹤卡片 -->
+      <div class="card" id="saving-invest-card" style="border-color:var(--tealdim);background:rgba(62,207,178,0.03);display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div class="card-label" style="margin-bottom:0">本月儲蓄／投資追蹤</div>
+          <span id="saving-invest-summary" style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--muted)"></span>
+        </div>
+        <div id="saving-invest-tracker"></div>
       </div>
 
       <!-- 記帳列表 -->
@@ -1572,7 +1581,7 @@ function showPage(p){
   if(p==='dashboard'){navItems[0].classList.add('active');document.getElementById('mob-dashboard')?.classList.add('active');}
   else if(p==='expenses'){navItems[1].classList.add('active');document.getElementById('mob-expenses')?.classList.add('active');initIncomeAdj();renderExpenses();}
   else if(p==='debt'){navItems[2].classList.add('active');}
-  else if(p==='ledger'){navItems[3].classList.add('active');document.getElementById('mob-ledger')?.classList.add('active');renderLedger();renderBudgetTracker();updateLedgerTotals();}
+  else if(p==='ledger'){navItems[3].classList.add('active');document.getElementById('mob-ledger')?.classList.add('active');renderLedger();renderBudgetTracker();renderSavingInvestTracker();updateLedgerTotals();}
   else if(p==='plan'){navItems[4].classList.add('active');document.getElementById('mob-plan')?.classList.add('active');renderPlan();}
   else if(p==='goals'){navItems[5].classList.add('active');document.getElementById('mob-goals')?.classList.add('active');renderGoals();}
   else if(p==='invest'){navItems[6].classList.add('active');renderInvest();}
@@ -1583,7 +1592,7 @@ function showPage(p){
 function showMobileMenu() { document.getElementById('mobile-more-menu').style.display = 'flex'; }
 function hideMobileMenu() { document.getElementById('mobile-more-menu').style.display = 'none'; }
 
-function renderAll(){renderExpenses();renderDebts();renderGoals();renderLedger();initMonthSelect();}
+function renderAll(){renderExpenses();renderDebts();renderGoals();renderLedger();renderSavingInvestTracker();initMonthSelect();}
 
 function initIncomeAdj(){
   document.getElementById('adj-income').value=appState.incomeNet||'';
@@ -1668,9 +1677,9 @@ function renderExpenses(){
   recalculate();
 }
 function toggleRatio(id){const e=appState.expenses.find(e=>e.id===id);if(!e)return;e.useRatio=!e.useRatio;if(e.useRatio&&!e.ratio){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;e.ratio=t>0?+((e.amount/t*100).toFixed(1)):10;}renderExpenses();scheduleSave();}
-function addExpRow(){appState.expenses.push({id:Date.now(),cat:'其他',name:'',amount:0,useRatio:false,ratio:0});renderExpenses();renderBudgetTracker();renderLedger();scheduleSave();}
-function removeExp(id){appState.expenses=appState.expenses.filter(e=>e.id!==id);renderExpenses();renderBudgetTracker();renderLedger();scheduleSave();}
-function updateExp(id,k,v){const e=appState.expenses.find(e=>e.id===id);if(e){e[k]=v;if(k==='ratio'||k==='amount'){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;const a=getExpAmount(e);const comp=document.getElementById('comp-'+id);if(comp)comp.innerHTML='$'+a.toLocaleString()+(e.useRatio&&t>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${t.toLocaleString()}</div>`:'');}if(k==='name'||k==='cat'){renderBudgetTracker();renderLedger();}recalculate();scheduleSave();}}
+function addExpRow(){appState.expenses.push({id:Date.now(),cat:'其他',name:'',amount:0,useRatio:false,ratio:0});renderExpenses();renderBudgetTracker();renderSavingInvestTracker();renderLedger();scheduleSave();}
+function removeExp(id){appState.expenses=appState.expenses.filter(e=>e.id!==id);renderExpenses();renderBudgetTracker();renderSavingInvestTracker();renderLedger();scheduleSave();}
+function updateExp(id,k,v){const e=appState.expenses.find(e=>e.id===id);if(e){e[k]=v;if(k==='ratio'||k==='amount'){const t=appState.incomeNet+appState.incomeSpouse+appState.incomeOther;const a=getExpAmount(e);const comp=document.getElementById('comp-'+id);if(comp)comp.innerHTML='$'+a.toLocaleString()+(e.useRatio&&t>0?`<div style="font-size:0.65rem;color:var(--tealdim);margin-top:1px">${e.ratio}% of $${t.toLocaleString()}</div>`:'');}if(k==='name'||k==='cat'){renderBudgetTracker();renderSavingInvestTracker();renderLedger();}recalculate();scheduleSave();}}
 
 function renderDebts(){
   const c=document.getElementById('debt-list');c.innerHTML='';
@@ -1755,6 +1764,73 @@ function renderBudgetTracker() {
   c.innerHTML = html || '<div style="color:var(--faint);font-size:0.82rem">本月尚無支出記錄</div>';
 }
 
+function renderSavingInvestTracker() {
+  const card = document.getElementById('saving-invest-card');
+  const c    = document.getElementById('saving-invest-tracker');
+  if (!c || c.offsetParent === null) return;
+
+  // 找出 cat 為 儲蓄 或 投資 的支出項目
+  const savingItems = appState.expenses.filter(e => ['儲蓄','投資'].includes(e.cat));
+  if (!savingItems.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  // 取得當月前置詞
+  const monthLabel = getCurrentMonthLabel();
+  const mlParts = monthLabel.match(/(\d{4})年\s*(\d{1,2})月/);
+  const monthPrefix = mlParts ? mlParts[1] + '-' + String(mlParts[2]).padStart(2,'0') : '';
+
+  // 當月記帳中對應的記錄（type 不限，用 expenseRef 比對）
+  const monthEntries = appState.ledger.filter(e =>
+    (!monthPrefix || (e.date||'').startsWith(monthPrefix))
+  );
+
+  let totalTarget = 0, totalDone = 0;
+  let html = '';
+
+  savingItems.forEach(exp => {
+    const target = getExpAmount(exp);
+    const done = monthEntries
+      .filter(e => e.expenseRef === String(exp.id))
+      .reduce((s,e) => s + (+e.amount||0), 0);
+    const pct = target > 0 ? Math.min(100, Math.round(done / target * 100)) : 0;
+    const completed = done >= target && target > 0;
+    const isSaving = exp.cat === '儲蓄';
+    const accentColor = isSaving ? 'var(--sky)' : 'var(--teal)';
+    const accentDim   = isSaving ? 'var(--skydim)' : 'var(--tealdim)';
+    const icon = isSaving ? '🏦' : '📈';
+    const barColor = completed ? 'var(--teal)' : pct >= 50 ? 'var(--sky)' : 'var(--gold)';
+
+    totalTarget += target;
+    totalDone   += Math.min(done, target);
+
+    html += `<div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(44,53,80,0.4)">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:0.82rem">${icon}</span>
+          <span style="font-size:0.85rem;font-weight:500">${exp.name || exp.cat}</span>
+          <span style="font-size:0.68rem;padding:2px 7px;border-radius:10px;background:${accentDim};color:${accentColor}">${exp.cat}</span>
+          ${completed ? '<span style="font-size:0.72rem;color:var(--teal)">✓ 完成</span>' : ''}
+        </div>
+        <div style="height:6px;background:var(--ink4);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width 0.6s"></div>
+        </div>
+      </div>
+      <div style="text-align:right;min-width:110px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.88rem;color:${completed ? 'var(--teal)' : 'var(--text)'}">$${done.toLocaleString()}</div>
+        <div style="font-size:0.7rem;color:var(--faint)">目標 $${target.toLocaleString()}</div>
+        ${!completed && target > done ? `<div style="font-size:0.7rem;color:var(--gold2)">還差 $${(target-done).toLocaleString()}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  // 總覽 badge
+  const totalPct = totalTarget > 0 ? Math.round(totalDone / totalTarget * 100) : 0;
+  const summaryEl = document.getElementById('saving-invest-summary');
+  if (summaryEl) summaryEl.textContent = `已完成 ${totalPct}%　$${totalDone.toLocaleString()} / $${totalTarget.toLocaleString()}`;
+
+  c.innerHTML = html;
+}
+
 function renderLedger() {
   const c = document.getElementById('ledger-list');
   c.innerHTML = '';
@@ -1769,7 +1845,7 @@ function renderLedger() {
 
   if (!sorted.length) {
     c.innerHTML = '<div style="color:var(--faint);font-size:0.83rem;padding:10px 0">尚無記錄，點＋新增</div>';
-    updateLedgerTotals(); renderBudgetTracker(); return;
+    updateLedgerTotals(); renderBudgetTracker(); renderSavingInvestTracker(); return;
   }
 
   const expNames = getExpenseNames();
