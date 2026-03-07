@@ -310,27 +310,29 @@
       <div class="card" style="border-color:var(--golddim);background:rgba(212,168,67,0.03)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
           <div class="card-label" style="margin-bottom:0">本月各項目預算追蹤</div>
-          <select id="ledger-month" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.82rem;outline:none"></select>
+          <select id="ledger-month" onchange="renderLedger();renderBudgetTracker();updateLedgerTotals()" style="background:var(--ink3);border:1px solid var(--line);border-radius:8px;padding:7px 11px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.82rem;outline:none"></select>
         </div>
         <div id="budget-tracker"></div>
       </div>
 
       <!-- 記帳列表 -->
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div class="card-label" style="margin-bottom:0">收支記錄</div>
           <button class="btn-addrow" onclick="addLedgerRow()">＋ 新增記錄</button>
+        </div>
+        <!-- 收支摘要移到最上方 -->
+        <div id="ledger-summary-top" style="display:flex;gap:16px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;background:var(--ink3);border-radius:10px;padding:10px 14px;margin-bottom:12px;flex-wrap:wrap">
+          <span style="color:var(--muted)">收入：<span style="color:var(--teal);font-weight:600" id="l-total-in">$0</span></span>
+          <span style="color:var(--faint)">│</span>
+          <span style="color:var(--muted)">支出：<span style="color:var(--rose);font-weight:600" id="l-total-out">$0</span></span>
+          <span style="color:var(--faint)">│</span>
+          <span style="color:var(--muted)">結餘：<span id="l-net" style="font-weight:600;color:var(--gold2)">$0</span></span>
         </div>
         <div class="ledger-header" id="ledger-header-row">
           <span>日期</span><span>支出項目</span><span>金額</span><span>類型</span><span></span>
         </div>
         <div id="ledger-list"></div>
-        <hr class="divider">
-        <div style="display:flex;justify-content:flex-end;gap:24px;font-family:'JetBrains Mono',monospace;font-size:0.85rem">
-          <span style="color:var(--muted)">收入：<span class="l-income" id="l-total-in">$0</span></span>
-          <span style="color:var(--muted)">支出：<span class="l-expense" id="l-total-out">$0</span></span>
-          <span style="color:var(--muted)">結餘：<span id="l-net" style="color:var(--gold2)">$0</span></span>
-        </div>
       </div>
     </div>
 
@@ -1703,8 +1705,13 @@ function renderBudgetTracker() {
     return;
   }
   const monthLabel = getCurrentMonthLabel();
-  // Get this month ledger entries that are expenses
-  const monthEntries = appState.ledger.filter(e => e.type === 'expense' && e.expenseRef);
+  // 依月份選單篩選，格式轉換: "2025年 3月" → "2025-03"
+  const mlParts = monthLabel.match(/(\d{4})年\s*(\d{1,2})月/);
+  const monthPrefix = mlParts ? mlParts[1] + '-' + String(mlParts[2]).padStart(2,'0') : '';
+  // Get selected month ledger entries that are expenses
+  const monthEntries = appState.ledger.filter(e =>
+    e.type === 'expense' && e.expenseRef && (!monthPrefix || (e.date||'').startsWith(monthPrefix))
+  );
   // Days in current month
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
@@ -1876,8 +1883,14 @@ function updateLed(id, k, v) {
   }
 }
 function updateLedgerTotals() {
-  const ti = appState.ledger.filter(e=>e.type==='income').reduce((s,e)=>s+(+e.amount||0),0);
-  const to = appState.ledger.filter(e=>e.type==='expense').reduce((s,e)=>s+(+e.amount||0),0);
+  const monthLabel = getCurrentMonthLabel();
+  const mlParts = monthLabel ? monthLabel.match(/(\d{4})年\s*(\d{1,2})月/) : null;
+  const monthPrefix = mlParts ? mlParts[1] + '-' + String(mlParts[2]).padStart(2,'0') : '';
+  const filtered = monthPrefix
+    ? appState.ledger.filter(e => (e.date||'').startsWith(monthPrefix))
+    : appState.ledger;
+  const ti = filtered.filter(e=>e.type==='income').reduce((s,e)=>s+(+e.amount||0),0);
+  const to = filtered.filter(e=>e.type==='expense').reduce((s,e)=>s+(+e.amount||0),0);
   document.getElementById('l-total-in').textContent = '$'+ti.toLocaleString();
   document.getElementById('l-total-out').textContent = '$'+to.toLocaleString();
   const net = ti-to;
