@@ -1227,15 +1227,36 @@ async function dbSave(key, value) {
       console.warn('[dbSave] no token for key:', key);
       return false;
     }
-    // 用 UPSERT（POST + Prefer: resolution=merge-duplicates）
-    // 這樣不管 row 存不存在都能正確寫入，避免 PATCH 在 0 筆時靜默失敗
-    const r = await fetch(SUPABASE_URL + '/rest/v1/finance_data', {
+    // 先嘗試 PATCH（更新已存在的 row）
+    const updateR = await fetch(
+      SUPABASE_URL + '/rest/v1/finance_data?user_id=eq.' + currentUser.id + '&key=eq.' + encodeURIComponent(key),
+      {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'  // 回傳更新後的資料，有資料才算成功
+        },
+        body: JSON.stringify({ value: JSON.stringify(value), updated_at: new Date().toISOString() })
+      }
+    );
+    // PATCH 回傳非空陣列 = 找到 row 且更新成功
+    if (updateR.ok) {
+      const updated = await updateR.json().catch(() => []);
+      if (Array.isArray(updated) && updated.length > 0) {
+        console.log('[dbSave] PATCH', key, '✓');
+        return true;
+      }
+    }
+    // Row 不存在，改用 INSERT
+    const insertR = await fetch(SUPABASE_URL + '/rest/v1/finance_data', {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_ANON,
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json',
-        'Prefer': 'return=minimal,resolution=merge-duplicates'
+        'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
         user_id: currentUser.id,
@@ -1244,12 +1265,12 @@ async function dbSave(key, value) {
         updated_at: new Date().toISOString()
       })
     });
-    const ok = r.ok || r.status === 200 || r.status === 201 || r.status === 204;
+    const ok = insertR.ok || insertR.status === 201;
     if (!ok) {
-      const errText = await r.text();
-      console.error('[dbSave] failed:', r.status, errText);
+      const errText = await insertR.text();
+      console.error('[dbSave] INSERT failed:', insertR.status, errText);
     } else {
-      console.log('[dbSave]', key, '✓');
+      console.log('[dbSave] INSERT', key, '✓');
     }
     return ok;
   } catch(e) { console.error('[dbSave] error:', e); return false; }
