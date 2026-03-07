@@ -2442,8 +2442,7 @@ function appendAIMsg(role, text, extra = '') {
   div.className = `ai-msg ${role}`;
   const avatar = role === 'ai' ? '✦' : (obData?.name?.[0] || '我');
   // 把換行符號轉成 <br>，並保留原始文字
-  const safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/
-/g,'<br>');
+  const safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
   div.innerHTML = `
     <div class="ai-msg-avatar">${avatar}</div>
     <div>
