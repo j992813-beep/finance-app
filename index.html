@@ -2509,8 +2509,7 @@ function buildFinanceContext() {
     .sort((a,b) => (b.date||'').localeCompare(a.date||''))
     .slice(0, 20)
     .map(e => `${e.date} ${e.name||''}${e.detail?' ('+e.detail+')':''} $${e.amount} ${e.type==='income'?'收入':'支出'}`)
-    .join('
-');
+    .join('\n');
 
   const goalsStr = s.goals.map(g =>
     `${g.name}: 已存$${g.saved||0}/目標$${g.target||0}, 每月$${g.monthly||0}`
@@ -2552,9 +2551,7 @@ async function sendAIMessage() {
   if (!text) return;
 
   if (!GEMINI_KEY) {
-    appendAIMsg('ai', '⚠️ 請先在程式碼中填入 Gemini API Key（GEMINI_KEY 變數）
-
-前往 https://aistudio.google.com 取得免費 API Key');
+    appendAIMsg('ai', '⚠️ 請先在程式碼中填入 Gemini API Key（GEMINI_KEY 變數）\n\n前往 https://aistudio.google.com 取得免費 API Key');
     return;
   }
 
